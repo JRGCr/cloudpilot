@@ -43,7 +43,8 @@
       ".pnpm-store",
       "logs",
       "*.log",
-      "pnpm-lock.yaml"
+      "pnpm-lock.yaml",
+      "**/*vite-env.d.ts"
     ]
   }
 }

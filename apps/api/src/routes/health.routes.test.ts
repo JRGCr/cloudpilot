@@ -46,7 +46,7 @@ describe('health routes', () => {
       expect(res.status).toBe(200);
       expect(json.success).toBe(true);
       expect(json.data.service).toBe('cloudpilot-api');
-      expect(json.data.version).toBe('0.0.1');
+      expect(json.data.version).toBe('dev');
       expect(json.data.database).toBe('healthy');
       expect(json.data.environment).toBe('test');
       expect(json.meta.timestamp).toBeDefined();
