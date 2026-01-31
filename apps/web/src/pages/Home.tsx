@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthActions, useIsAuthLoading, useIsAuthenticated } from '../lib/hooks';
 
@@ -5,6 +6,17 @@ export function Home() {
   const isAuthenticated = useIsAuthenticated();
   const isLoading = useIsAuthLoading();
   const { login } = useAuthActions();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  const handleLogin = async () => {
+    try {
+      setIsSigningIn(true);
+      await login();
+    } catch (error) {
+      console.error('Login failed:', error);
+      setIsSigningIn(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -50,14 +62,15 @@ export function Home() {
       </p>
       <button
         type="button"
-        onClick={login}
+        onClick={handleLogin}
+        disabled={isSigningIn}
         className="btn btn-primary"
         style={{
           padding: '0.875rem 2rem',
           fontSize: '1rem',
         }}
       >
-        Sign in with GitHub
+        {isSigningIn ? 'Signing in...' : 'Sign in with GitHub'}
       </button>
     </div>
   );
