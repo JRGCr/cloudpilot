@@ -11,4 +11,5 @@ export interface Env {
   NODE_ENV?: string;
   LOG_LEVEL?: string;
   AUTH_PROXY_SECRET?: string;
+  TRUSTED_ORIGINS?: string;
 }

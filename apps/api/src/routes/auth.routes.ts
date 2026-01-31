@@ -9,54 +9,50 @@ import type { Env } from '../types/env.js';
 
 const auth = new Hono<{ Bindings: Env; Variables: Variables }>();
 
+// Flag to log configuration only once
+let hasLoggedConfig = false;
+
 // Mount Better Auth handler for all auth routes
 auth.all('/*', async (c) => {
   const logger = c.get('logger');
   const requestId = c.get('requestId');
 
-  try {
-    logger?.debug('Creating Better Auth instance', {
+  // Log configuration on first request
+  if (!hasLoggedConfig && logger) {
+    const trustedOrigins = c.env.TRUSTED_ORIGINS || '(using defaults)';
+    logger.info('Better Auth configuration', {
       requestId,
-      path: c.req.path,
-      method: c.req.method,
+      trustedOrigins,
+      baseURL: c.env.BETTER_AUTH_URL,
+      nodeEnv: c.env.NODE_ENV,
     });
-
-    const authInstance = createAuth(c.env);
-
-    logger?.debug('Calling Better Auth handler', { requestId });
-    const response = await authInstance.handler(c.req.raw);
-
-    logger?.debug('Better Auth handler completed', {
-      requestId,
-      status: response.status,
-    });
-
-    return response;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error ? error.stack : undefined;
-
-    logger?.error('Better Auth handler error', {
-      requestId,
-      error: errorMessage,
-      stack: errorStack,
-      path: c.req.path,
-      method: c.req.method,
-    });
-
-    return c.json(
-      {
-        success: false,
-        error: {
-          code: 'AUTH_ERROR',
-          message: 'Authentication service error',
-          details: { message: errorMessage },
-        },
-        meta: { requestId, timestamp: new Date().toISOString() },
-      },
-      500,
-    );
+    hasLoggedConfig = true;
   }
+
+  // Log incoming request details
+  logger?.debug('Better Auth request', {
+    requestId,
+    path: c.req.path,
+    method: c.req.method,
+    origin: c.req.header('origin'),
+    referer: c.req.header('referer'),
+    userAgent: c.req.header('user-agent'),
+  });
+
+  const authInstance = createAuth(c.env);
+  const response = await authInstance.handler(c.req.raw);
+
+  // Log Better Auth response
+  logger?.debug('Better Auth response', {
+    requestId,
+    status: response.status,
+    statusText: response.statusText,
+    headers: Object.fromEntries(response.headers.entries()),
+  });
+
+  // Return Better Auth response directly without modification
+  // This preserves proper HTTP status codes (302, 404, 400, etc.)
+  return response;
 });
 
 export { auth };
