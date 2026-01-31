@@ -5,8 +5,8 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { drizzle } from 'drizzle-orm/d1';
-import type { Env } from '../types/env.js';
 import * as schema from '../db/schema.js';
+import type { Env } from '../types/env.js';
 
 /**
  * Parses TRUSTED_ORIGINS from environment with sensible defaults
@@ -35,46 +35,21 @@ function getTrustedOrigins(env: Env): string[] {
 }
 
 export function createAuth(env: Env) {
-  console.log('[createAuth] Starting Better Auth creation...');
   try {
-    // Validate required environment variables
-    console.log('[createAuth] Validating environment variables...');
     if (!env.BETTER_AUTH_SECRET) {
-      console.error('[createAuth] MISSING: BETTER_AUTH_SECRET');
       throw new Error('BETTER_AUTH_SECRET is required');
     }
     if (!env.BETTER_AUTH_URL) {
-      console.error('[createAuth] MISSING: BETTER_AUTH_URL');
       throw new Error('BETTER_AUTH_URL is required');
     }
     if (!env.GITHUB_CLIENT_ID) {
-      console.error('[createAuth] MISSING: GITHUB_CLIENT_ID');
       throw new Error('GITHUB_CLIENT_ID is required');
     }
     if (!env.GITHUB_CLIENT_SECRET) {
-      console.error('[createAuth] MISSING: GITHUB_CLIENT_SECRET');
       throw new Error('GITHUB_CLIENT_SECRET is required');
     }
-    console.log('[createAuth] All required environment variables present');
-
-    // Log environment configuration (redacted)
-    console.log('[createAuth] Configuration:', {
-      baseURL: env.BETTER_AUTH_URL,
-      hasSecret: !!env.BETTER_AUTH_SECRET,
-      hasGitHubClientId: !!env.GITHUB_CLIENT_ID,
-      hasGitHubClientSecret: !!env.GITHUB_CLIENT_SECRET,
-      nodeEnv: env.NODE_ENV,
-    });
-
-    console.log('[createAuth] Creating Drizzle database instance...');
     const db = drizzle(env.DB, { schema });
-    console.log('[createAuth] Drizzle instance created');
-
-    console.log('[createAuth] Getting trusted origins...');
     const trustedOrigins = getTrustedOrigins(env);
-    console.log('[createAuth] Trusted origins:', trustedOrigins);
-
-    console.log('[createAuth] Building Better Auth configuration...');
     const authConfig = {
       // Standard Better Auth configuration
       database: drizzleAdapter(db, {
@@ -99,22 +74,13 @@ export function createAuth(env: Env) {
         },
       },
     };
-    console.log('[createAuth] Configuration built');
-
-    console.log('[createAuth] Creating betterAuth instance (no wrapper)...');
     const authInstance = betterAuth(authConfig);
-    console.log('[createAuth] Better Auth instance created successfully');
 
     return authInstance;
   } catch (error) {
     // Re-throw with more context
     const message = error instanceof Error ? error.message : 'Unknown error';
-    const stack = error instanceof Error ? error.stack : undefined;
-    console.error('[createAuth] FATAL ERROR:', {
-      message,
-      stack,
-      error,
-    });
+    const _stack = error instanceof Error ? error.stack : undefined;
     throw new Error(`Failed to create Better Auth instance: ${message}`);
   }
 }

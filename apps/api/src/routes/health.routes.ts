@@ -8,27 +8,18 @@ import type { Env } from '../types/env.js';
 
 const health = new Hono<{ Bindings: Env; Variables: Variables }>();
 
-console.log('[Routes] Health routes initialized');
-
 // Root health check
 health.get('/', async (c) => {
-  console.log('[Health] Root health check requested');
-
   let dbStatus = 'unknown';
   try {
-    console.log('[Health] Testing database connection...');
     await c.env.DB.prepare('SELECT 1').first();
     dbStatus = 'healthy';
-    console.log('[Health] Database is healthy');
-  } catch (error) {
-    console.error('[Health] Database check failed:', error);
+  } catch (_error) {
     dbStatus = 'unhealthy';
   }
 
   const buildVersion = c.env.BUILD_VERSION || 'dev';
   const buildTime = c.env.BUILD_TIME || new Date().toISOString();
-
-  console.log('[Health] Build info:', { buildVersion, buildTime });
 
   // Log version on first health check
   const logger = c.get('logger');
@@ -51,8 +42,6 @@ health.get('/', async (c) => {
       timestamp: new Date().toISOString(),
     },
   };
-
-  console.log('[Health] Returning response:', response);
   return c.json(response);
 });
 

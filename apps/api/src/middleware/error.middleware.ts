@@ -68,20 +68,15 @@ export class RateLimitError extends AppError {
 }
 
 export function errorHandler() {
-  console.log('[Middleware] Error handler initialized');
   return async (c: AppContext, next: Next) => {
-    console.log('[ErrorHandler] Processing request:', c.req.method, c.req.path);
     try {
       await next();
-      console.log('[ErrorHandler] Request completed successfully');
     } catch (error) {
-      console.error('[ErrorHandler] ERROR CAUGHT:', error);
       const logger = c.get('logger');
       const requestId = c.get('requestId');
       const isProduction = c.env.NODE_ENV === 'production';
 
       if (error instanceof AppError) {
-        console.log('[ErrorHandler] AppError detected:', error.code, error.statusCode);
         logger?.warn(`AppError: ${error.code}`, {
           statusCode: error.statusCode,
           details: error.details,
@@ -102,11 +97,6 @@ export function errorHandler() {
 
       // Unexpected error
       const err = error as Error;
-      console.error('[ErrorHandler] Unexpected error:', {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
-      });
       logger?.error('Unexpected error', {
         name: err.name,
         message: err.message,
