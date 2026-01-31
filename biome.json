@@ -8,7 +8,7 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noConsole": "warn",
+        "noConsole": "off",
         "noExplicitAny": "error"
       },
       "style": {

@@ -373,3 +373,15 @@ GET https://cloudpilot-api.blackbaysolutions.workers.dev/health - Ok @ 2026-01-3
   (log) [AuthMiddleware] Request completed
   (warn) [2m2026-01-31T21:30:55.680Z[0m [33mWARN [0m [2m[server][0m Response 404[2m (0ms)[0m
   (log) [ErrorHandler] Request completed successfully
+HEAD https://cloudpilot-api.blackbaysolutions.workers.dev/auth/sign-in/github - Ok @ 2026-01-31, 4:34:17 p.m.
+  (info) [2m2026-01-31T21:34:17.411Z[0m [32mINFO [0m [2m[server][0m HEAD /auth/sign-in/github
+  (info) [2m2026-01-31T21:34:17.411Z[0m [32mINFO [0m [2m[server][0m Better Auth configuration
+  (debug) [2m2026-01-31T21:34:17.411Z[0m [36mDEBUG[0m [2m[server][0m Better Auth request
+  (debug) [2m2026-01-31T21:34:17.411Z[0m [36mDEBUG[0m [2m[server][0m Better Auth response
+  (warn) [2m2026-01-31T21:34:17.411Z[0m [33mWARN [0m [2m[server][0m Response 404[2m (0ms)[0m
+GET https://cloudpilot-api.blackbaysolutions.workers.dev/auth - Ok @ 2026-01-31, 4:34:22 p.m.
+  (info) [2m2026-01-31T21:34:23.013Z[0m [32mINFO [0m [2m[server][0m GET /auth
+  (info) [2m2026-01-31T21:34:23.013Z[0m [32mINFO [0m [2m[server][0m Better Auth configuration
+  (debug) [2m2026-01-31T21:34:23.013Z[0m [36mDEBUG[0m [2m[server][0m Better Auth request
+  (debug) [2m2026-01-31T21:34:23.013Z[0m [36mDEBUG[0m [2m[server][0m Better Auth response
+  (warn) [2m2026-01-31T21:34:23.013Z[0m [33mWARN [0m [2m[server][0m Response 404[2m (0ms)[0m
