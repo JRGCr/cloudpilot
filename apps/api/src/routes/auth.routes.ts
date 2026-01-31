@@ -43,13 +43,27 @@ auth.all('/*', async (c) => {
     const authInstance = createAuth(c.env);
     const response = await authInstance.handler(c.req.raw);
 
-    // Log Better Auth response
+    // Log Better Auth response (including body for debugging 500s)
+    const clonedResponse = response.clone();
+    const bodyText = await clonedResponse.text();
+
     logger?.debug('Better Auth response', {
       requestId,
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries()),
+      bodyLength: bodyText.length,
+      bodyPreview: bodyText.substring(0, 500),
     });
+
+    // If 500, log as error with full details
+    if (response.status === 500) {
+      logger?.error('Better Auth returned 500', {
+        requestId,
+        bodyText,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+    }
 
     // Return Better Auth response directly without modification
     // This preserves proper HTTP status codes (302, 404, 400, etc.)
@@ -62,7 +76,7 @@ auth.all('/*', async (c) => {
       name: error instanceof Error ? error.name : undefined,
     };
 
-    logger?.error('Better Auth error', { requestId, error: errorDetails });
+    logger?.error('Better Auth exception thrown', { requestId, error: errorDetails });
 
     return c.json(
       {
