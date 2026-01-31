@@ -61,12 +61,10 @@ jobs:
         run: pnpm build
 
       - name: Run D1 Migrations
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          packageManager: pnpm
-          command: d1 migrations apply cloudpilot --env production --config apps/api/wrangler.toml
+        working-directory: apps/api
+        run: pnpm wrangler d1 migrations apply cloudpilot --env production
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy API to Workers Production
