@@ -101,18 +101,14 @@ authProxy.get('/callback', async (c) => {
 
   // Create transfer token with the OAuth code
   const transferToken = nanoid(32);
-  const tokenData = {
-    returnUrl,
-    code,
-    expiresAt: Date.now() + 60000, // 60 seconds
-  };
+  const expiresAt = Date.now() + 60000; // 60 seconds
 
-  // Store in KV with automatic expiration
-  await c.env.AUTH_TRANSFER_TOKENS.put(
-    `transfer:${transferToken}`,
-    JSON.stringify(tokenData),
-    { expirationTtl: 60 }, // Auto-expire in 60 seconds
-  );
+  // Store in D1 database
+  await c.env.DB.prepare(
+    'INSERT INTO transfer_tokens (id, return_url, code, expires_at) VALUES (?, ?, ?, ?)',
+  )
+    .bind(transferToken, returnUrl, code, expiresAt)
+    .run();
 
   // Redirect to preview with transfer token
   const redirectUrl = new URL(returnUrl);
@@ -128,10 +124,14 @@ authProxy.post('/exchange', async (c) => {
   const logger = c.get('logger');
   const requestId = c.get('requestId');
 
-  // Get token data from KV
-  const tokenDataStr = await c.env.AUTH_TRANSFER_TOKENS.get(`transfer:${transferToken}`);
+  // Get token data from D1
+  const result = await c.env.DB.prepare(
+    'SELECT return_url, code, expires_at FROM transfer_tokens WHERE id = ?',
+  )
+    .bind(transferToken)
+    .first();
 
-  if (!tokenDataStr) {
+  if (!result) {
     logger?.warn('Invalid or expired transfer token', { requestId });
     return c.json(
       {
@@ -146,15 +146,15 @@ authProxy.post('/exchange', async (c) => {
     );
   }
 
-  const tokenData = JSON.parse(tokenDataStr) as {
-    returnUrl: string;
-    code: string;
-    expiresAt: number;
+  const tokenData = {
+    returnUrl: result.return_url as string,
+    code: result.code as string,
+    expiresAt: result.expires_at as number,
   };
 
   // Check expiration
   if (tokenData.expiresAt < Date.now()) {
-    await c.env.AUTH_TRANSFER_TOKENS.delete(`transfer:${transferToken}`);
+    await c.env.DB.prepare('DELETE FROM transfer_tokens WHERE id = ?').bind(transferToken).run();
     logger?.warn('Expired transfer token', { requestId });
     return c.json(
       {
@@ -169,8 +169,8 @@ authProxy.post('/exchange', async (c) => {
     );
   }
 
-  // Delete token from KV (single use)
-  await c.env.AUTH_TRANSFER_TOKENS.delete(`transfer:${transferToken}`);
+  // Delete token from D1 (single use)
+  await c.env.DB.prepare('DELETE FROM transfer_tokens WHERE id = ?').bind(transferToken).run();
 
   if (!tokenData.code) {
     logger?.warn('No OAuth code in transfer token', { requestId });
