@@ -12,8 +12,8 @@ export function Home() {
     try {
       setIsSigningIn(true);
       await login();
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch (_error) {
+      // Error is logged by the store
       setIsSigningIn(false);
     }
   };
