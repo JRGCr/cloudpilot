@@ -1,29 +1,11 @@
 /**
- * Better Auth configuration with singleton caching
+ * Better Auth configuration
  */
 
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { drizzle } from 'drizzle-orm/d1';
 import type { Env } from '../types/env.js';
-
-// Singleton cache for auth instance
-let cachedAuth: ReturnType<typeof betterAuth> | null = null;
-let cachedEnvHash: string | null = null;
-
-/**
- * Creates a hash of environment variables to detect changes
- */
-function getEnvHash(env: Env): string {
-  return [
-    env.BETTER_AUTH_SECRET,
-    env.BETTER_AUTH_URL,
-    env.GITHUB_CLIENT_ID,
-    env.GITHUB_CLIENT_SECRET,
-    env.NODE_ENV,
-    env.TRUSTED_ORIGINS,
-  ].join('|');
-}
 
 /**
  * Parses TRUSTED_ORIGINS from environment with sensible defaults
@@ -67,17 +49,10 @@ export function createAuth(env: Env) {
       throw new Error('GITHUB_CLIENT_SECRET is required');
     }
 
-    // Check if we can use cached instance
-    const envHash = getEnvHash(env);
-    if (cachedAuth && cachedEnvHash === envHash) {
-      return cachedAuth;
-    }
-
-    // Create new instance
     const db = drizzle(env.DB);
     const trustedOrigins = getTrustedOrigins(env);
 
-    const auth = betterAuth({
+    return betterAuth({
       database: drizzleAdapter(db, {
         provider: 'sqlite',
       }),
@@ -99,12 +74,6 @@ export function createAuth(env: Env) {
         },
       },
     });
-
-    // Cache the instance
-    cachedAuth = auth;
-    cachedEnvHash = envHash;
-
-    return auth;
   } catch (error) {
     // Re-throw with more context
     const message = error instanceof Error ? error.message : 'Unknown error';
