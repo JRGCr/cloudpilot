@@ -27,5 +27,5 @@ name = "cloudpilot-api"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "cloudpilot"
-database_id = "placeholder"
+database_id = "74e356ad-42c2-4806-b2b7-c7f4850261a2"
 migrations_dir = "../../migrations"
