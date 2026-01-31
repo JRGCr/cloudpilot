@@ -35,6 +35,13 @@ export function initClientLogger(): void {
     },
   });
 
+  // Log build version on startup
+  clientLogger.info('CloudPilot Web started', {
+    buildVersion: __BUILD_VERSION__,
+    buildTime: __BUILD_TIME__,
+    environment: import.meta.env.MODE,
+  });
+
   // Capture uncaught errors
   window.addEventListener('error', (event) => {
     clientLogger?.error('Uncaught error', {

@@ -12,4 +12,6 @@ export interface Env {
   LOG_LEVEL?: string;
   AUTH_PROXY_SECRET?: string;
   TRUSTED_ORIGINS?: string;
+  BUILD_VERSION?: string;
+  BUILD_TIME?: string;
 }

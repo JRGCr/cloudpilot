@@ -32,7 +32,7 @@ jobs:
 
       - name: Deploy API to Workers Preview
         working-directory: apps/api
-        run: pnpm wrangler deploy --env preview --var NODE_ENV:"$NODE_ENV" --var BETTER_AUTH_SECRET:"$BETTER_AUTH_SECRET" --var BETTER_AUTH_URL:"$BETTER_AUTH_URL" --var GITHUB_CLIENT_ID:"$GITHUB_CLIENT_ID" --var GITHUB_CLIENT_SECRET:"$GITHUB_CLIENT_SECRET" --var AUTH_PROXY_SECRET:"$AUTH_PROXY_SECRET" --var TRUSTED_ORIGINS:"$TRUSTED_ORIGINS"
+        run: pnpm wrangler deploy --env preview --var NODE_ENV:"$NODE_ENV" --var BETTER_AUTH_SECRET:"$BETTER_AUTH_SECRET" --var BETTER_AUTH_URL:"$BETTER_AUTH_URL" --var GITHUB_CLIENT_ID:"$GITHUB_CLIENT_ID" --var GITHUB_CLIENT_SECRET:"$GITHUB_CLIENT_SECRET" --var AUTH_PROXY_SECRET:"$AUTH_PROXY_SECRET" --var TRUSTED_ORIGINS:"$TRUSTED_ORIGINS" --var BUILD_VERSION:"$BUILD_VERSION" --var BUILD_TIME:"$BUILD_TIME"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -43,6 +43,8 @@ jobs:
           GITHUB_CLIENT_SECRET: ${{ secrets.PROD_GITHUB_CLIENT_SECRET }}
           AUTH_PROXY_SECRET: ${{ secrets.PROD_AUTH_PROXY_SECRET }}
           TRUSTED_ORIGINS: https://cloudpilot-web.pages.dev,https://*.cloudpilot-web.pages.dev
+          BUILD_VERSION: ${{ github.sha }}
+          BUILD_TIME: ${{ github.event.head_commit.timestamp }}
 
       - name: Create Pages Project (if not exists)
         working-directory: apps/web

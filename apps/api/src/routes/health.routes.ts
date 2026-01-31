@@ -18,11 +18,23 @@ health.get('/', async (c) => {
     dbStatus = 'unhealthy';
   }
 
+  const buildVersion = c.env.BUILD_VERSION || 'dev';
+  const buildTime = c.env.BUILD_TIME || new Date().toISOString();
+
+  // Log version on first health check
+  const logger = c.get('logger');
+  logger?.info('CloudPilot API health check', {
+    buildVersion,
+    buildTime,
+    environment: c.env.NODE_ENV ?? 'development',
+  });
+
   return c.json({
     success: true,
     data: {
       service: 'cloudpilot-api',
-      version: '0.0.1',
+      version: buildVersion,
+      buildTime,
       environment: c.env.NODE_ENV ?? 'development',
       database: dbStatus,
     },
