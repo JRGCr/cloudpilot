@@ -22,6 +22,15 @@ vi.mock('./logger', () => ({
   }),
 }));
 
+// Mock the auth client
+vi.mock('./auth-client', () => ({
+  authClient: {
+    signIn: {
+      social: vi.fn(),
+    },
+  },
+}));
+
 // Mock window.location
 const mockLocation = {
   href: '',
@@ -130,12 +139,14 @@ describe('Auth Hooks', () => {
   });
 
   describe('useAuthActions', () => {
-    it('login redirects to GitHub auth', () => {
+    it('login calls Better Auth social signin', async () => {
+      const { authClient } = await import('./auth-client');
       const { login } = useAuthStore.getState();
-      login();
-      expect(mockLocation.href).toBe(
-        'https://cloudpilot-api.blackbaysolutions.workers.dev/auth/signin/github',
-      );
+      await login();
+      expect(authClient.signIn.social).toHaveBeenCalledWith({
+        provider: 'github',
+        callbackURL: expect.stringContaining('/auth/callback'),
+      });
     });
 
     it('logout clears user and session on success', async () => {

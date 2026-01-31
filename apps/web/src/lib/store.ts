@@ -4,6 +4,7 @@
 
 import type { Session, User } from '@cloudpilot/shared';
 import { create } from 'zustand';
+import { authClient } from './auth-client';
 import { getClientLogger } from './logger';
 
 interface AuthState {
@@ -78,12 +79,13 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     getClientLogger().stateChange('auth', 'reset', redactState(prev), redactState(initialState));
   },
 
-  login: () => {
+  login: async () => {
     const logger = getClientLogger();
     logger.authEvent('login_initiated');
-    const apiUrl =
-      import.meta.env.VITE_API_URL || 'https://cloudpilot-api.blackbaysolutions.workers.dev';
-    window.location.href = `${apiUrl}/auth/signin/github`;
+    await authClient.signIn.social({
+      provider: 'github',
+      callbackURL: `${window.location.origin}/auth/callback`,
+    });
   },
 
   logout: async () => {
