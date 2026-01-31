@@ -16,9 +16,9 @@ import type { Env } from './types/env.js';
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // Global middleware (order matters)
+app.use('*', errorHandler());
 app.use('*', corsMiddleware());
 app.use('*', loggingMiddleware());
-app.use('*', errorHandler());
 app.use('*', authMiddleware());
 
 // Mount routes
