@@ -1,0 +1,43 @@
+# Lefthook configuration for git hooks
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{ts,tsx,js,jsx,json}"
+      run: pnpm biome check {staged_files}
+      stage_fixed: true
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: pnpm typecheck
+
+pre-push:
+  commands:
+    test:
+      run: pnpm test
+    build:
+      run: pnpm build
+
+commit-msg:
+  commands:
+    validate:
+      run: |
+        message=$(cat {1})
+        # Conventional commit pattern
+        pattern="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?: .{1,72}$"
+        if ! echo "$message" | grep -qE "$pattern"; then
+          echo "Invalid commit message format."
+          echo ""
+          echo "Expected: type(scope): description"
+          echo ""
+          echo "Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+          echo "Scope: optional, lowercase alphanumeric with hyphens"
+          echo "Description: lowercase start, no period, max 72 chars"
+          echo ""
+          echo "Examples:"
+          echo "  feat(auth): add github oauth support"
+          echo "  fix: resolve database connection issue"
+          echo "  chore(deps): update dependencies"
+          exit 1
+        fi
