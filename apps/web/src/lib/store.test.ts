@@ -20,6 +20,8 @@ vi.mock('./auth-client', () => ({
     signIn: {
       social: vi.fn(),
     },
+    signOut: vi.fn(),
+    getSession: vi.fn(),
   },
 }));
 
@@ -58,7 +60,7 @@ const mockSession: Session = {
 };
 
 describe('Auth Store', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset store to initial state
     useAuthStore.setState({
       user: null,
@@ -68,6 +70,12 @@ describe('Auth Store', () => {
     });
     vi.clearAllMocks();
     mockLocation.href = '';
+
+    // Reset auth client mocks
+    const { authClient } = await import('./auth-client');
+    vi.mocked(authClient.signIn.social).mockClear();
+    vi.mocked(authClient.signOut).mockClear();
+    vi.mocked(authClient.getSession).mockClear();
   });
 
   afterEach(() => {
@@ -172,14 +180,13 @@ describe('Auth Store', () => {
 
   describe('logout', () => {
     it('clears user and session on success', async () => {
+      const { authClient } = await import('./auth-client');
+      (authClient.signOut as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
+
       useAuthStore.setState({
         user: mockUser,
         session: mockSession,
         isLoading: false,
-      });
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
       });
 
       const { logout } = useAuthStore.getState();
@@ -192,48 +199,33 @@ describe('Auth Store', () => {
       expect(state.error).toBeNull();
     });
 
-    it('sets error on failure', async () => {
+    it('handles errors', async () => {
+      const { authClient } = await import('./auth-client');
+      (authClient.signOut as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error('Logout failed'),
+      );
+
       useAuthStore.setState({
         user: mockUser,
         session: mockSession,
         isLoading: false,
       });
 
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      });
-
       const { logout } = useAuthStore.getState();
       await logout();
 
       const state = useAuthStore.getState();
-      expect(state.error).toBe('Logout failed with status 500');
+      expect(state.error).toBe('Logout failed');
       expect(state.isLoading).toBe(false);
-    });
-
-    it('handles network errors', async () => {
-      useAuthStore.setState({
-        user: mockUser,
-        session: mockSession,
-        isLoading: false,
-      });
-
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
-
-      const { logout } = useAuthStore.getState();
-      await logout();
-
-      const state = useAuthStore.getState();
-      expect(state.error).toBe('Network error');
     });
   });
 
   describe('fetchSession', () => {
     it('sets user and session when authenticated', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ user: mockUser, session: mockSession }),
+      const { authClient } = await import('./auth-client');
+      vi.mocked(authClient.getSession).mockResolvedValue({
+        user: mockUser,
+        session: mockSession,
       });
 
       const { fetchSession } = useAuthStore.getState();
@@ -245,15 +237,13 @@ describe('Auth Store', () => {
       expect(state.isLoading).toBe(false);
     });
 
-    it('clears state on 401', async () => {
+    it('clears state when no session', async () => {
+      const { authClient } = await import('./auth-client');
+      vi.mocked(authClient.getSession).mockResolvedValue(null);
+
       useAuthStore.setState({
         user: mockUser,
         session: mockSession,
-      });
-
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
       });
 
       const { fetchSession } = useAuthStore.getState();
@@ -262,27 +252,23 @@ describe('Auth Store', () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.session).toBeNull();
-      expect(state.error).toBeNull(); // 401 is not an error
+      expect(state.error).toBeNull();
     });
 
-    it('sets error on other failures', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      });
+    it('handles errors', async () => {
+      const { authClient } = await import('./auth-client');
+      vi.mocked(authClient.getSession).mockRejectedValue(new Error('Session fetch failed'));
 
       const { fetchSession } = useAuthStore.getState();
       await fetchSession();
 
       const state = useAuthStore.getState();
-      expect(state.error).toBe('Failed to fetch session: status 500');
+      expect(state.error).toBe('Session fetch failed');
     });
 
     it('handles missing user in response', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({}),
-      });
+      const { authClient } = await import('./auth-client');
+      vi.mocked(authClient.getSession).mockResolvedValue({});
 
       const { fetchSession } = useAuthStore.getState();
       await fetchSession();

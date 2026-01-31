@@ -91,27 +91,10 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   logout: async () => {
     const logger = getClientLogger();
     const prev = get();
-    const apiUrl =
-      import.meta.env.VITE_API_URL || 'https://cloudpilot-api.blackbaysolutions.workers.dev';
-
     set({ isLoading: true, error: null });
 
     try {
-      const response = await fetch(`${apiUrl}/auth/signout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const message = `Logout failed with status ${response.status}`;
-        logger.authEvent('logout_error', prev.user?.id, {
-          error: message,
-          status: response.status,
-        });
-        set({ error: message, isLoading: false });
-        return;
-      }
-
+      await authClient.signOut();
       logger.authEvent('logout_success', prev.user?.id);
       set({ user: null, session: null, isLoading: false });
     } catch (error) {
@@ -123,46 +106,44 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
 
   fetchSession: async () => {
     const logger = getClientLogger();
-    const apiUrl =
-      import.meta.env.VITE_API_URL || 'https://cloudpilot-api.blackbaysolutions.workers.dev';
-
     set({ isLoading: true, error: null });
 
     try {
-      const response = await fetch(`${apiUrl}/auth/session`, {
-        credentials: 'include',
-      });
+      const response = await authClient.getSession();
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          // No session - not an error
-          logger.authEvent('session_none');
-          set({ user: null, session: null, isLoading: false });
+      // Type guard to check if response has data
+      if (response && 'data' in response && response.data) {
+        const sessionData = response.data;
+        if (sessionData.user && sessionData.session) {
+          logger.authEvent('session_restored', sessionData.user.id);
+          set({
+            user: {
+              id: sessionData.user.id,
+              name: sessionData.user.name ?? null,
+              email: sessionData.user.email,
+              emailVerified: sessionData.user.emailVerified ?? false,
+              image: sessionData.user.image ?? null,
+              createdAt: sessionData.user.createdAt?.toISOString() ?? new Date().toISOString(),
+              updatedAt: sessionData.user.updatedAt?.toISOString() ?? new Date().toISOString(),
+            },
+            session: {
+              id: sessionData.session.id,
+              userId: sessionData.session.userId,
+              token: sessionData.session.token,
+              expiresAt: new Date(sessionData.session.expiresAt).toISOString(),
+              ipAddress: sessionData.session.ipAddress ?? null,
+              userAgent: sessionData.session.userAgent ?? null,
+              createdAt: sessionData.session.createdAt?.toISOString() ?? new Date().toISOString(),
+              updatedAt: sessionData.session.updatedAt?.toISOString() ?? new Date().toISOString(),
+            },
+            isLoading: false,
+          });
           return;
         }
-
-        const message = `Failed to fetch session: status ${response.status}`;
-        logger.authEvent('session_fetch_error', undefined, {
-          error: message,
-          status: response.status,
-        });
-        set({ user: null, session: null, error: message, isLoading: false });
-        return;
       }
 
-      const data = (await response.json()) as { user?: User; session?: Session };
-
-      if (data.user && data.session) {
-        logger.authEvent('session_restored', data.user.id);
-        set({
-          user: data.user,
-          session: data.session,
-          isLoading: false,
-        });
-      } else {
-        logger.authEvent('session_incomplete');
-        set({ user: null, session: null, isLoading: false });
-      }
+      logger.authEvent('session_none');
+      set({ user: null, session: null, isLoading: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Session fetch request failed';
       logger.authEvent('session_fetch_error', undefined, { error: message });

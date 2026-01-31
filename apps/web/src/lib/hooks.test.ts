@@ -28,6 +28,8 @@ vi.mock('./auth-client', () => ({
     signIn: {
       social: vi.fn(),
     },
+    signOut: vi.fn(),
+    getSession: vi.fn(),
   },
 }));
 
@@ -150,14 +152,13 @@ describe('Auth Hooks', () => {
     });
 
     it('logout clears user and session on success', async () => {
+      const { authClient } = await import('./auth-client');
+      (authClient.signOut as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
+
       useAuthStore.setState({
         user: mockUser,
         session: mockSession,
         isLoading: false,
-      });
-
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
       });
 
       const { logout } = useAuthStore.getState();
@@ -168,9 +169,10 @@ describe('Auth Hooks', () => {
     });
 
     it('fetchSession restores session on success', async () => {
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ user: mockUser, session: mockSession }),
+      const { authClient } = await import('./auth-client');
+      vi.mocked(authClient.getSession).mockResolvedValue({
+        user: mockUser,
+        session: mockSession,
       });
 
       const { fetchSession } = useAuthStore.getState();
