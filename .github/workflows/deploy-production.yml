@@ -26,11 +26,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Type check
-        run: pnpm typecheck
-
       - name: Build shared package
         run: pnpm --filter @cloudpilot/shared build
+
+      - name: Type check
+        run: pnpm typecheck
 
       - name: Run tests
         run: pnpm test
