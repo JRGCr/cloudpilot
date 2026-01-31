@@ -10,9 +10,22 @@ port = 8787
 binding = "DB"
 database_name = "cloudpilot"
 database_id = "local"
+migrations_dir = "../../migrations"
 
 [env.preview]
 name = "cloudpilot-api-preview"
 
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "cloudpilot"
+database_id = "local"
+migrations_dir = "../../migrations"
+
 [env.production]
 name = "cloudpilot-api"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "cloudpilot"
+database_id = "placeholder"
+migrations_dir = "../../migrations"
