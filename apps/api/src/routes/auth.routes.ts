@@ -39,20 +39,44 @@ auth.all('/*', async (c) => {
     userAgent: c.req.header('user-agent'),
   });
 
-  const authInstance = createAuth(c.env);
-  const response = await authInstance.handler(c.req.raw);
+  try {
+    const authInstance = createAuth(c.env);
+    const response = await authInstance.handler(c.req.raw);
 
-  // Log Better Auth response
-  logger?.debug('Better Auth response', {
-    requestId,
-    status: response.status,
-    statusText: response.statusText,
-    headers: Object.fromEntries(response.headers.entries()),
-  });
+    // Log Better Auth response
+    logger?.debug('Better Auth response', {
+      requestId,
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+    });
 
-  // Return Better Auth response directly without modification
-  // This preserves proper HTTP status codes (302, 404, 400, etc.)
-  return response;
+    // Return Better Auth response directly without modification
+    // This preserves proper HTTP status codes (302, 404, 400, etc.)
+    return response;
+  } catch (error) {
+    // Temporary: return error details for debugging
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+    };
+
+    logger?.error('Better Auth error', { requestId, error: errorDetails });
+
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: 'AUTH_ERROR',
+          message: 'Authentication error',
+          details: errorDetails,
+        },
+        meta: { requestId, timestamp: new Date().toISOString() },
+      },
+      500,
+    );
+  }
 });
 
 export { auth };
