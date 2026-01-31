@@ -72,10 +72,11 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/api
-          command: deploy --env production --var BETTER_AUTH_SECRET:$BETTER_AUTH_SECRET --var GITHUB_CLIENT_ID:$GITHUB_CLIENT_ID --var GITHUB_CLIENT_SECRET:$GITHUB_CLIENT_SECRET --var AUTH_PROXY_SECRET:$AUTH_PROXY_SECRET
+          command: deploy --env production --var BETTER_AUTH_SECRET:$BETTER_AUTH_SECRET --var BETTER_AUTH_URL:$BETTER_AUTH_URL --var GITHUB_CLIENT_ID:$GITHUB_CLIENT_ID --var GITHUB_CLIENT_SECRET:$GITHUB_CLIENT_SECRET --var AUTH_PROXY_SECRET:$AUTH_PROXY_SECRET
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           BETTER_AUTH_SECRET: ${{ secrets.PROD_BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: https://cloudpilot-api.blackbaysolutions.workers.dev
           GITHUB_CLIENT_ID: ${{ secrets.PROD_GITHUB_CLIENT_ID }}
           GITHUB_CLIENT_SECRET: ${{ secrets.PROD_GITHUB_CLIENT_SECRET }}
           AUTH_PROXY_SECRET: ${{ secrets.PROD_AUTH_PROXY_SECRET }}
