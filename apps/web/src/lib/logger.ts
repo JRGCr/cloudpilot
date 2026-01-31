@@ -9,10 +9,13 @@ let clientLogger: Logger | null = null;
 export function initClientLogger(): void {
   if (typeof window === 'undefined') return;
 
+  const apiUrl =
+    import.meta.env.VITE_API_URL || 'https://cloudpilot-api.blackbaysolutions.workers.dev';
+
   const writers = [
     new ConsoleWriter({ expandMetadata: true }),
     new FetchWriter({
-      endpoint: '/api/logs/batch',
+      endpoint: `${apiUrl}/logs/batch`,
       batchSize: 50,
       batchIntervalMs: 2000,
     }),

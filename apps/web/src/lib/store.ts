@@ -81,17 +81,21 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   login: () => {
     const logger = getClientLogger();
     logger.authEvent('login_initiated');
-    window.location.href = '/api/auth/signin/github';
+    const apiUrl =
+      import.meta.env.VITE_API_URL || 'https://cloudpilot-api.blackbaysolutions.workers.dev';
+    window.location.href = `${apiUrl}/auth/signin/github`;
   },
 
   logout: async () => {
     const logger = getClientLogger();
     const prev = get();
+    const apiUrl =
+      import.meta.env.VITE_API_URL || 'https://cloudpilot-api.blackbaysolutions.workers.dev';
 
     set({ isLoading: true, error: null });
 
     try {
-      const response = await fetch('/api/auth/signout', {
+      const response = await fetch(`${apiUrl}/auth/signout`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -117,11 +121,13 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
 
   fetchSession: async () => {
     const logger = getClientLogger();
+    const apiUrl =
+      import.meta.env.VITE_API_URL || 'https://cloudpilot-api.blackbaysolutions.workers.dev';
 
     set({ isLoading: true, error: null });
 
     try {
-      const response = await fetch('/api/auth/session', {
+      const response = await fetch(`${apiUrl}/auth/session`, {
         credentials: 'include',
       });
 
