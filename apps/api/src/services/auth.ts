@@ -49,6 +49,15 @@ export function createAuth(env: Env) {
       throw new Error('GITHUB_CLIENT_SECRET is required');
     }
 
+    // Log environment configuration (redacted)
+    console.log('[Better Auth] Configuration:', {
+      baseURL: env.BETTER_AUTH_URL,
+      hasSecret: !!env.BETTER_AUTH_SECRET,
+      hasGitHubClientId: !!env.GITHUB_CLIENT_ID,
+      hasGitHubClientSecret: !!env.GITHUB_CLIENT_SECRET,
+      nodeEnv: env.NODE_ENV,
+    });
+
     const db = drizzle(env.DB);
     const trustedOrigins = getTrustedOrigins(env);
 
