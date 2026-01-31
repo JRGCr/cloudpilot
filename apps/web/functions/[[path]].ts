@@ -52,6 +52,11 @@ export const onRequest = async (context: PagesContext): Promise<Response> => {
     return context.next();
   }
 
+  // Serve index.html directly if it's explicitly requested
+  if (pathname === '/index.html') {
+    return context.next();
+  }
+
   // For all other routes (/, /dashboard, /logs, etc.), serve index.html
   // This allows React Router to handle client-side routing
   const indexUrl = new URL(context.request.url);
