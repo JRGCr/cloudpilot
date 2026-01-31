@@ -133,7 +133,9 @@ describe('Auth Hooks', () => {
     it('login redirects to GitHub auth', () => {
       const { login } = useAuthStore.getState();
       login();
-      expect(mockLocation.href).toBe('/api/auth/signin/github');
+      expect(mockLocation.href).toBe(
+        'https://cloudpilot-api.blackbaysolutions.workers.dev/auth/signin/github',
+      );
     });
 
     it('logout clears user and session on success', async () => {

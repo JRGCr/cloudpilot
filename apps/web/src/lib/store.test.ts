@@ -153,7 +153,9 @@ describe('Auth Store', () => {
 
       login();
 
-      expect(mockLocation.href).toBe('/api/auth/signin/github');
+      expect(mockLocation.href).toBe(
+        'https://cloudpilot-api.blackbaysolutions.workers.dev/auth/signin/github',
+      );
     });
   });
 
