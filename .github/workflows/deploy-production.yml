@@ -64,7 +64,8 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: d1 migrations apply cloudpilot --env production
+          packageManager: pnpm
+          command: d1 migrations apply cloudpilot --env production --config apps/api/wrangler.toml
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
