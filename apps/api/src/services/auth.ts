@@ -1,8 +1,9 @@
 /**
- * Better Auth configuration
+ * Better Auth configuration with Cloudflare Workers optimization
  */
 
 import { betterAuth } from 'better-auth';
+import { withCloudflare } from 'better-auth-cloudflare';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { drizzle } from 'drizzle-orm/d1';
 import type { Env } from '../types/env.js';
@@ -61,28 +62,36 @@ export function createAuth(env: Env) {
     const db = drizzle(env.DB);
     const trustedOrigins = getTrustedOrigins(env);
 
-    return betterAuth({
-      database: drizzleAdapter(db, {
-        provider: 'sqlite',
-      }),
-      secret: env.BETTER_AUTH_SECRET,
-      baseURL: env.BETTER_AUTH_URL,
-      trustedOrigins,
-      session: {
-        expiresIn: 60 * 60 * 24 * 7, // 7 days
-        updateAge: 60 * 60 * 24, // 1 day
-      },
-      advanced: {
-        cookiePrefix: 'cloudpilot',
-        useSecureCookies: env.NODE_ENV === 'production',
-      },
-      socialProviders: {
-        github: {
-          clientId: env.GITHUB_CLIENT_ID,
-          clientSecret: env.GITHUB_CLIENT_SECRET,
+    // Use withCloudflare wrapper to fix Cloudflare Workers compatibility issues
+    // Pass empty Cloudflare config to use default drizzleAdapter, but get Workers optimizations
+    return betterAuth(
+      withCloudflare(
+        {}, // Empty Cloudflare config - we handle database via drizzleAdapter below
+        {
+          // Standard Better Auth configuration
+          database: drizzleAdapter(db, {
+            provider: 'sqlite',
+          }),
+          secret: env.BETTER_AUTH_SECRET,
+          baseURL: env.BETTER_AUTH_URL,
+          trustedOrigins,
+          session: {
+            expiresIn: 60 * 60 * 24 * 7, // 7 days
+            updateAge: 60 * 60 * 24, // 1 day
+          },
+          advanced: {
+            cookiePrefix: 'cloudpilot',
+            useSecureCookies: env.NODE_ENV === 'production',
+          },
+          socialProviders: {
+            github: {
+              clientId: env.GITHUB_CLIENT_ID,
+              clientSecret: env.GITHUB_CLIENT_SECRET,
+            },
+          },
         },
-      },
-    });
+      ),
+    );
   } catch (error) {
     // Re-throw with more context
     const message = error instanceof Error ? error.message : 'Unknown error';
