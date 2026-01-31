@@ -31,6 +31,11 @@ export function createAuth(env: Env) {
       }),
       secret: env.BETTER_AUTH_SECRET,
       baseURL: env.BETTER_AUTH_URL,
+      trustedOrigins: [
+        'https://cloudpilot-web.pages.dev',
+        'http://localhost:5173',
+        'http://localhost:3000',
+      ],
       session: {
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 1 day
