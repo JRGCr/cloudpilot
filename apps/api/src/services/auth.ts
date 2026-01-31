@@ -6,6 +6,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { drizzle } from 'drizzle-orm/d1';
 import type { Env } from '../types/env.js';
+import * as schema from '../db/schema.js';
 
 /**
  * Parses TRUSTED_ORIGINS from environment with sensible defaults
@@ -66,7 +67,7 @@ export function createAuth(env: Env) {
     });
 
     console.log('[createAuth] Creating Drizzle database instance...');
-    const db = drizzle(env.DB);
+    const db = drizzle(env.DB, { schema });
     console.log('[createAuth] Drizzle instance created');
 
     console.log('[createAuth] Getting trusted origins...');
@@ -78,6 +79,7 @@ export function createAuth(env: Env) {
       // Standard Better Auth configuration
       database: drizzleAdapter(db, {
         provider: 'sqlite',
+        schema,
       }),
       secret: env.BETTER_AUTH_SECRET,
       baseURL: env.BETTER_AUTH_URL,
