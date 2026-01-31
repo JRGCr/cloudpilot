@@ -38,7 +38,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           NODE_ENV: production
           BETTER_AUTH_SECRET: ${{ secrets.PROD_BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: https://cloudpilot-api-preview.blackbaysolutions.workers.dev
+          BETTER_AUTH_URL: https://cloudpilot-api-preview.blackbaysolutions.workers.dev/auth
           GITHUB_CLIENT_ID: ${{ secrets.PROD_GITHUB_CLIENT_ID }}
           GITHUB_CLIENT_SECRET: ${{ secrets.PROD_GITHUB_CLIENT_SECRET }}
           AUTH_PROXY_SECRET: ${{ secrets.PROD_AUTH_PROXY_SECRET }}
