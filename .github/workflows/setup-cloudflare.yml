@@ -15,16 +15,6 @@ jobs:
         with:
           version: 9
 
-      - name: Create KV Namespace
-        id: kv
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: kv:namespace create AUTH_TRANSFER_TOKENS --env production
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        continue-on-error: true
-
       - name: Create D1 Database
         id: d1
         uses: cloudflare/wrangler-action@v3
@@ -35,27 +25,23 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         continue-on-error: true
 
-      - name: Get Resource IDs
+      - name: Get D1 Database ID
         id: ids
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: kv:namespace list --json > kv.json && d1 list --json > d1.json
+          command: d1 list --json > d1.json
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Extract IDs and Update wrangler.toml
+      - name: Extract ID and Update wrangler.toml
         run: |
-          # Extract KV namespace ID (find one with AUTH_TRANSFER_TOKENS in title)
-          KV_ID=$(jq -r '.[] | select(.title | contains("AUTH_TRANSFER_TOKENS")) | .id' kv.json | head -1)
-
           # Extract D1 database ID (find cloudpilot database)
           D1_ID=$(jq -r '.[] | select(.name == "cloudpilot") | .uuid' d1.json | head -1)
 
-          echo "KV Namespace ID: $KV_ID"
           echo "D1 Database ID: $D1_ID"
 
-          # Update wrangler.toml with the IDs
+          # Update wrangler.toml with the ID
           cat > apps/api/wrangler.toml << EOF
           name = "cloudpilot-api"
           main = "src/index.ts"
@@ -85,22 +71,17 @@ jobs:
           binding = "DB"
           database_name = "cloudpilot"
           database_id = "$D1_ID"
-
-          [[env.production.kv_namespaces]]
-          binding = "AUTH_TRANSFER_TOKENS"
-          id = "$KV_ID"
           EOF
 
-          echo "Updated wrangler.toml with resource IDs"
+          echo "Updated wrangler.toml with D1 database ID"
 
       - name: Commit and Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add apps/api/wrangler.toml
-          git commit -m "chore: configure Cloudflare resources in wrangler.toml
+          git commit -m "chore: configure Cloudflare D1 database in wrangler.toml
 
-          - Added KV namespace binding for AUTH_TRANSFER_TOKENS
           - Added D1 database binding for production
           - Configured production environment variables
 
@@ -114,8 +95,7 @@ jobs:
           echo "================================================"
           echo ""
           echo "Resources created and wrangler.toml updated with:"
-          echo "- KV Namespace: AUTH_TRANSFER_TOKENS"
-          echo "- D1 Database: cloudpilot"
+          echo "- D1 Database: cloudpilot (ID: $D1_ID)"
           echo ""
           echo "Changes have been committed and pushed to main."
           echo ""
