@@ -80,6 +80,8 @@ export function createAuth(env: Env) {
       database: drizzleAdapter(db, {
         provider: 'sqlite',
         schema,
+        // @ts-expect-error - supportsDates not in types but required for D1 date handling
+        supportsDates: false, // Required for D1/SQLite text-based date columns
       }),
       secret: env.BETTER_AUTH_SECRET,
       baseURL: env.BETTER_AUTH_URL,
