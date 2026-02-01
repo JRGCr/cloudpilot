@@ -82,9 +82,11 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   login: async () => {
     const logger = getClientLogger();
     logger.authEvent('login_initiated');
+    // Don't specify callbackURL - let Better Auth use the API domain
+    // This ensures OAuth flow uses browser redirects instead of fetch,
+    // which allows cookies to be set properly
     await authClient.signIn.social({
       provider: 'github',
-      callbackURL: `${window.location.origin}/auth/callback`,
     });
   },
 

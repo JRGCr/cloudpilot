@@ -96,8 +96,6 @@ export function createAuth(env: Env) {
         github: {
           clientId: env.GITHUB_CLIENT_ID,
           clientSecret: env.GITHUB_CLIENT_SECRET,
-          // Force callback to use API domain, not web app domain
-          redirectURI: `${env.BETTER_AUTH_URL}/callback/github`,
         },
       },
     };

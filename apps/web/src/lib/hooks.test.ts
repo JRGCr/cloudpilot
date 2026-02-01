@@ -151,7 +151,6 @@ describe('Auth Hooks', () => {
       await login();
       expect(authClient.signIn.social).toHaveBeenCalledWith({
         provider: 'github',
-        callbackURL: expect.stringContaining('/auth/callback'),
       });
     });
 

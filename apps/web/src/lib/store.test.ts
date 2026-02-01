@@ -173,7 +173,6 @@ describe('Auth Store', () => {
 
       expect(authClient.signIn.social).toHaveBeenCalledWith({
         provider: 'github',
-        callbackURL: expect.stringContaining('/auth/callback'),
       });
     });
   });
