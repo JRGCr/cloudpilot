@@ -153,13 +153,35 @@ function createAuth(env: Env) {
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
+  const url = new URL(request.url);
+  const pathname = url.pathname;
 
-  console.log('[Pages Auth] Request received:', request.method, new URL(request.url).pathname);
+  console.log('[Pages Auth] Request received:', request.method, pathname);
   console.log('[Pages Auth] Request headers:', {
     origin: request.headers.get('origin'),
     referer: request.headers.get('referer'),
     cookie: request.headers.get('cookie') ? 'present' : 'absent',
+    userAgent: request.headers.get('user-agent'),
   });
+
+  // Enhanced logging for error routes
+  if (pathname.includes('/error')) {
+    console.error('[Pages Auth] ⚠️ ERROR ROUTE ACCESSED:', pathname);
+    console.error('[Pages Auth] Error route query params:', url.search);
+    console.error('[Pages Auth] Error route full URL:', url.toString());
+
+    // Parse query params to show error details
+    const errorType = url.searchParams.get('error');
+    const errorDescription = url.searchParams.get('error_description');
+    const state = url.searchParams.get('state');
+
+    console.error('[Pages Auth] Error details:', {
+      errorType,
+      errorDescription,
+      state: state ? `${state.substring(0, 20)}...` : 'none',
+      allParams: Object.fromEntries(url.searchParams.entries()),
+    });
+  }
 
   try {
     const authInstance = createAuth(env);
@@ -179,18 +201,33 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const text = await cloned.text();
       console.error('[Pages Auth] Error response:', {
         status: response.status,
+        statusText: response.statusText,
         body: text.substring(0, 500),
+        contentType: response.headers.get('content-type'),
       });
+    }
+
+    // Additional logging for error route responses
+    if (pathname.includes('/error')) {
+      const cloned = response.clone();
+      const text = await cloned.text();
+      console.error('[Pages Auth] Error route response body:', text.substring(0, 1000));
     }
 
     return response;
   } catch (error) {
-    console.error('[Pages Auth] Exception:', error);
+    console.error('[Pages Auth] Exception caught in handler:', error);
+    console.error('[Pages Auth] Exception details:', {
+      name: error instanceof Error ? error.name : 'unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'no stack trace',
+    });
 
     return new Response(
       JSON.stringify({
         error: 'Authentication error',
         message: error instanceof Error ? error.message : 'Unknown error',
+        path: pathname,
       }),
       {
         status: 500,
