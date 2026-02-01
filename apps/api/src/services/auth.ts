@@ -92,10 +92,6 @@ export function createAuth(env: Env) {
         cookiePrefix: 'cloudpilot',
         useSecureCookies: env.NODE_ENV === 'production',
       },
-      // Enable cross-origin cookies for OAuth state
-      cookies: {
-        sameSite: 'none',
-      },
       socialProviders: {
         github: {
           clientId: env.GITHUB_CLIENT_ID,
