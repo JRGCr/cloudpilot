@@ -81,10 +81,32 @@ jobs:
         working-directory: apps/web
         run: |
           # Set production environment variables for Pages Functions
-          echo "Setting environment variables for Pages Functions..."
-          pnpm wrangler pages secret put BETTER_AUTH_SECRET --env production <<< "$BETTER_AUTH_SECRET" || true
-          pnpm wrangler pages secret put GITHUB_CLIENT_ID --env production <<< "$GITHUB_CLIENT_ID" || true
-          pnpm wrangler pages secret put GITHUB_CLIENT_SECRET --env production <<< "$GITHUB_CLIENT_SECRET" || true
+          echo "Setting secrets for Pages Functions..."
+          pnpm wrangler pages secret put BETTER_AUTH_SECRET --project-name=cloudpilot-web <<< "$BETTER_AUTH_SECRET" || true
+          pnpm wrangler pages secret put GITHUB_CLIENT_ID --project-name=cloudpilot-web <<< "$GITHUB_CLIENT_ID" || true
+          pnpm wrangler pages secret put GITHUB_CLIENT_SECRET --project-name=cloudpilot-web <<< "$GITHUB_CLIENT_SECRET" || true
+
+          echo "Setting non-secret environment variables for Pages Functions..."
+          # For non-secret environment variables, we need to use the Cloudflare API
+          # The wrangler CLI doesn't have a direct command for non-secret env vars
+          # So we'll set them via the API
+          curl -X PATCH "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/cloudpilot-web" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "deployment_configs": {
+                "production": {
+                  "env_vars": {
+                    "BETTER_AUTH_URL": {
+                      "value": "https://cloudpilot-web.pages.dev/api/auth"
+                    },
+                    "NODE_ENV": {
+                      "value": "production"
+                    }
+                  }
+                }
+              }
+            }' || echo "Warning: Failed to set environment variables via API"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
