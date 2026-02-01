@@ -3,7 +3,6 @@
  */
 
 import { betterAuth } from 'better-auth';
-import { withCloudflare } from 'better-auth-cloudflare';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { drizzle } from 'drizzle-orm/d1';
 import * as schema from '../db/schema.js';
@@ -97,15 +96,15 @@ export function createAuth(env: Env) {
         github: {
           clientId: env.GITHUB_CLIENT_ID,
           clientSecret: env.GITHUB_CLIENT_SECRET,
+          // Force callback to use API domain, not web app domain
+          redirectURI: `${env.BETTER_AUTH_URL}/callback/github`,
         },
       },
     };
     console.log('[createAuth] Configuration built');
 
-    console.log('[createAuth] Creating betterAuth instance with Cloudflare wrapper...');
-    // Use withCloudflare wrapper for Workers-specific optimizations (cookie handling, etc.)
-    // Pass empty Cloudflare config - we handle database via drizzleAdapter
-    const authInstance = betterAuth(withCloudflare({}, authConfig));
+    console.log('[createAuth] Creating betterAuth instance...');
+    const authInstance = betterAuth(authConfig);
     console.log('[createAuth] Better Auth instance created successfully');
 
     return authInstance;
