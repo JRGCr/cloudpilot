@@ -9,8 +9,8 @@ let clientLogger: Logger | null = null;
 export function initClientLogger(): void {
   if (typeof window === 'undefined') return;
 
-  const apiUrl =
-    import.meta.env.VITE_API_URL || 'https://cloudpilot-api.blackbaysolutions.workers.dev';
+  // API is now served via Pages Functions on same origin
+  const apiUrl = import.meta.env.VITE_API_URL || '/api';
 
   const writers = [
     new ConsoleWriter({ expandMetadata: true }),
