@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "dist/functions",
+    "rootDir": ".",
+    "declaration": false,
+    "sourceMap": false,
+    "removeComments": true,
+    "strict": true,
+    "noEmit": false,
+    "skipLibCheck": true
+  },
+  "include": ["functions/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}
