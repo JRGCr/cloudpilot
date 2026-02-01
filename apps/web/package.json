@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run build:functions",
-    "build:functions": "tsc --project tsconfig.functions.json",
+    "build:functions": "tsc --project tsconfig.functions.json && mkdir -p dist/functions && cp -r .tmp-functions/functions/* dist/functions/ && cp -r functions/*.js dist/functions/ 2>/dev/null || true && rm -rf .tmp-functions",
     "preview": "wrangler pages dev dist",
     "deploy": "wrangler pages deploy dist",
     "typecheck": "tsc --noEmit"

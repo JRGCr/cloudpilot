@@ -4,7 +4,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "outDir": "dist/functions",
+    "outDir": ".tmp-functions",
     "rootDir": ".",
     "declaration": false,
     "sourceMap": false,
