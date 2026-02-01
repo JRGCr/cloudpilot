@@ -184,7 +184,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    const authInstance = createAuth(env);
+    console.log('[Pages Auth] Creating auth instance...');
+    let authInstance: ReturnType<typeof createAuth>;
+    try {
+      authInstance = createAuth(env);
+      console.log('[Pages Auth] Auth instance created successfully');
+    } catch (createError) {
+      console.error('[Pages Auth] Failed to create auth instance:', createError);
+      console.error('[Pages Auth] CreateAuth error details:', {
+        name: createError instanceof Error ? createError.name : 'unknown',
+        message: createError instanceof Error ? createError.message : String(createError),
+        stack: createError instanceof Error ? createError.stack : 'no stack',
+      });
+      throw createError; // Re-throw to be caught by outer catch
+    }
+
+    console.log('[Pages Auth] Calling auth handler...');
     const response = await authInstance.handler(request);
 
     console.log('[Pages Auth] Handler returned, status:', response.status);
@@ -204,6 +219,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         statusText: response.statusText,
         body: text.substring(0, 500),
         contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length'),
       });
     }
 
@@ -216,23 +232,30 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     return response;
   } catch (error) {
-    console.error('[Pages Auth] Exception caught in handler:', error);
+    console.error('[Pages Auth] ❌ EXCEPTION CAUGHT:', error);
     console.error('[Pages Auth] Exception details:', {
       name: error instanceof Error ? error.name : 'unknown',
       message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : 'no stack trace',
+      stack: error instanceof Error ? error.stack?.substring(0, 1000) : 'no stack trace',
+      type: typeof error,
     });
 
-    return new Response(
-      JSON.stringify({
-        error: 'Authentication error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        path: pathname,
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
+    const errorResponse = {
+      success: false,
+      error: 'Authentication error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      path: pathname,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.error('[Pages Auth] Returning error response:', errorResponse);
+
+    return new Response(JSON.stringify(errorResponse, null, 2), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
       },
-    );
+    });
   }
 };
