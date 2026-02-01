@@ -1,84 +1,62 @@
 /**
- * Health check endpoint for Cloudflare Pages Functions
+ * Simple health check endpoint to verify Pages Functions are working
  */
 
 import type { PagesFunction } from '@cloudflare/workers-types';
 
 interface Env {
   DB: D1Database;
-  NODE_ENV?: string;
-  BUILD_VERSION?: string;
-  BUILD_TIME?: string;
   BETTER_AUTH_SECRET?: string;
   BETTER_AUTH_URL?: string;
   GITHUB_CLIENT_ID?: string;
   GITHUB_CLIENT_SECRET?: string;
+  NODE_ENV?: string;
 }
 
-export const onRequestGet: PagesFunction<Env> = async (context) => {
-  const { env } = context;
+export const onRequest: PagesFunction<Env> = async (context) => {
+  const { request, env } = context;
+  const url = new URL(request.url);
 
-  console.log('[Pages Health] Health check requested');
+  console.log('[Health] Health check request:', request.method, url.pathname);
 
-  let dbStatus = 'unknown';
   try {
-    console.log('[Pages Health] Testing database connection...');
-    await env.DB.prepare('SELECT 1').first();
-    dbStatus = 'healthy';
-    console.log('[Pages Health] Database is healthy');
-  } catch (error) {
-    console.error('[Pages Health] Database check failed:', error);
-    dbStatus = 'unhealthy';
-  }
-
-  const buildVersion = env.BUILD_VERSION || 'dev';
-  const buildTime = env.BUILD_TIME || new Date().toISOString();
-
-  console.log('[Pages Health] Build info:', { buildVersion, buildTime });
-
-  // Check auth configuration
-  const authConfig = {
-    hasBetterAuthSecret: !!env.BETTER_AUTH_SECRET,
-    hasBetterAuthURL: !!env.BETTER_AUTH_URL,
-    hasGitHubClientId: !!env.GITHUB_CLIENT_ID,
-    hasGitHubClientSecret: !!env.GITHUB_CLIENT_SECRET,
-    betterAuthURL: env.BETTER_AUTH_URL || 'NOT_SET',
-  };
-
-  const missingEnvVars = [
-    !env.BETTER_AUTH_SECRET && 'BETTER_AUTH_SECRET',
-    !env.BETTER_AUTH_URL && 'BETTER_AUTH_URL',
-    !env.GITHUB_CLIENT_ID && 'GITHUB_CLIENT_ID',
-    !env.GITHUB_CLIENT_SECRET && 'GITHUB_CLIENT_SECRET',
-  ].filter(Boolean);
-
-  console.log('[Pages Health] Auth config:', authConfig);
-  console.log('[Pages Health] Missing env vars:', missingEnvVars);
-
-  const response = {
-    success: true,
-    data: {
-      service: 'cloudpilot-api',
-      version: buildVersion,
-      buildTime,
-      environment: env.NODE_ENV ?? 'development',
-      database: dbStatus,
-      deployment: 'pages-functions',
-      auth: {
-        configured: missingEnvVars.length === 0,
-        missingEnvVars,
-        betterAuthURL: env.BETTER_AUTH_URL || 'NOT_SET',
-      },
-    },
-    meta: {
+    const health = {
+      status: 'ok',
       timestamp: new Date().toISOString(),
-    },
-  };
+      method: request.method,
+      path: url.pathname,
+      environment: {
+        hasDb: !!env.DB,
+        hasAuthSecret: !!env.BETTER_AUTH_SECRET,
+        hasAuthUrl: !!env.BETTER_AUTH_URL,
+        hasGithubId: !!env.GITHUB_CLIENT_ID,
+        hasGithubSecret: !!env.GITHUB_CLIENT_SECRET,
+        nodeEnv: env.NODE_ENV || 'unknown',
+      },
+    };
 
-  console.log('[Pages Health] Returning response:', response);
+    console.log('[Health] Health response:', health);
 
-  return new Response(JSON.stringify(response), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
+    return new Response(JSON.stringify(health, null, 2), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      },
+    });
+  } catch (error) {
+    console.error('[Health] Health check error:', error);
+    
+    return new Response(JSON.stringify({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }, null, 2), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
 };
