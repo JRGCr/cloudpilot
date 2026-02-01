@@ -113,42 +113,66 @@ function createAuth(env: Env) {
   }
 
   console.log('[Pages Auth] Environment validated');
-
-  const db = drizzle(env.DB, { schema });
-  const trustedOrigins = getTrustedOrigins(env);
-
-  console.log('[Pages Auth] Configuration:', {
-    baseURL: env.BETTER_AUTH_URL,
-    trustedOrigins,
-    nodeEnv: env.NODE_ENV,
+  console.log('[Pages Auth] Environment vars (partial):', {
+    BETTER_AUTH_URL: env.BETTER_AUTH_URL,
+    NODE_ENV: env.NODE_ENV,
+    hasGithubId: !!env.GITHUB_CLIENT_ID,
+    hasGithubSecret: !!env.GITHUB_CLIENT_SECRET,
+    hasAuthSecret: !!env.BETTER_AUTH_SECRET,
   });
 
-  const authInstance = betterAuth({
-    database: drizzleAdapter(db, {
+  try {
+    console.log('[Pages Auth] Creating drizzle instance...');
+    const db = drizzle(env.DB, { schema });
+    console.log('[Pages Auth] Drizzle instance created successfully');
+
+    const trustedOrigins = getTrustedOrigins(env);
+    console.log('[Pages Auth] Trusted origins:', trustedOrigins);
+
+    console.log('[Pages Auth] Creating Better Auth instance with config:', {
+      baseURL: env.BETTER_AUTH_URL,
+      trustedOrigins,
+      nodeEnv: env.NODE_ENV,
       provider: 'sqlite',
-      schema,
-    }),
-    secret: env.BETTER_AUTH_SECRET,
-    baseURL: env.BETTER_AUTH_URL,
-    trustedOrigins,
-    session: {
-      expiresIn: 60 * 60 * 24 * 7, // 7 days
-      updateAge: 60 * 60 * 24, // 1 day
-    },
-    advanced: {
-      cookiePrefix: 'cloudpilot',
-      useSecureCookies: env.NODE_ENV === 'production',
-    },
-    socialProviders: {
-      github: {
-        clientId: env.GITHUB_CLIENT_ID,
-        clientSecret: env.GITHUB_CLIENT_SECRET,
-      },
-    },
-  });
+      hasSchema: !!schema,
+      schemaKeys: Object.keys(schema),
+    });
 
-  console.log('[Pages Auth] Better Auth instance created successfully');
-  return authInstance;
+    const authInstance = betterAuth({
+      database: drizzleAdapter(db, {
+        provider: 'sqlite',
+        schema,
+      }),
+      secret: env.BETTER_AUTH_SECRET,
+      baseURL: env.BETTER_AUTH_URL,
+      trustedOrigins,
+      session: {
+        expiresIn: 60 * 60 * 24 * 7, // 7 days
+        updateAge: 60 * 60 * 24, // 1 day
+      },
+      advanced: {
+        cookiePrefix: 'cloudpilot',
+        useSecureCookies: env.NODE_ENV === 'production',
+      },
+      socialProviders: {
+        github: {
+          clientId: env.GITHUB_CLIENT_ID,
+          clientSecret: env.GITHUB_CLIENT_SECRET,
+        },
+      },
+    });
+
+    console.log('[Pages Auth] Better Auth instance created successfully');
+    return authInstance;
+  } catch (dbError) {
+    console.error('[Pages Auth] Database/Auth setup error:', dbError);
+    console.error('[Pages Auth] DB error details:', {
+      name: dbError instanceof Error ? dbError.name : 'unknown',
+      message: dbError instanceof Error ? dbError.message : String(dbError),
+      stack: dbError instanceof Error ? dbError.stack : 'no stack',
+    });
+    throw dbError;
+  }
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -200,9 +224,26 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     console.log('[Pages Auth] Calling auth handler...');
-    const response = await authInstance.handler(request);
+    console.log('[Pages Auth] Request details:', {
+      method: request.method,
+      url: pathname,
+      hasBody: request.method !== 'GET',
+      contentType: request.headers.get('content-type'),
+    });
 
-    console.log('[Pages Auth] Handler returned, status:', response.status);
+    let response: Response;
+    try {
+      response = await authInstance.handler(request);
+      console.log('[Pages Auth] Handler returned successfully, status:', response.status);
+    } catch (handlerError) {
+      console.error('[Pages Auth] Handler execution failed:', handlerError);
+      console.error('[Pages Auth] Handler error details:', {
+        name: handlerError instanceof Error ? handlerError.name : 'unknown',
+        message: handlerError instanceof Error ? handlerError.message : String(handlerError),
+        stack: handlerError instanceof Error ? handlerError.stack?.substring(0, 1000) : 'no stack',
+      });
+      throw handlerError; // Re-throw to be caught by outer catch
+    }
 
     // Log response details for debugging
     const setCookie = response.headers.get('set-cookie');
