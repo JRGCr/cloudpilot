@@ -3024,3 +3024,350 @@ GET https://cloudpilot-api.blackbaysolutions.workers.dev/ - Ok @ 2026-01-31, 5:2
   (log) [AuthMiddleware] Request completed
   (info) [2m2026-01-31T22:27:36.739Z[0m [32mINFO [0m [2m[server][0m Response 200[2m (32ms)[0m
   (log) [ErrorHandler] Request completed successfully
+OPTIONS https://cloudpilot-api.blackbaysolutions.workers.dev/logs/batch - Ok @ 2026-01-31, 5:44:07 p.m.
+  (log) [ErrorHandler] Processing request: OPTIONS /logs/batch
+  (log) [ErrorHandler] Request completed successfully
+POST https://cloudpilot-api.blackbaysolutions.workers.dev/logs/batch - Ok @ 2026-01-31, 5:44:07 p.m.
+  (log) [ErrorHandler] Processing request: POST /logs/batch
+  (info) [2m2026-01-31T22:44:07.442Z[0m [32mINFO [0m [2m[server][0m POST /logs/batch
+  (log) [AuthMiddleware] Processing request: POST /logs/batch
+  (log) [AuthMiddleware] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [AuthMiddleware] Auth instance created successfully
+  (log) [AuthMiddleware] Fetching session...
+  (log) [AuthMiddleware] Session fetched: false
+  (log) [AuthMiddleware] No valid session found
+  (log) [AuthMiddleware] Proceeding to next middleware
+  (info) [2m2026-01-31T22:44:07.442Z[0m [32mINFO [0m [2m[server][0m Log batch write request received
+  (info) [2m2026-01-31T22:44:07.442Z[0m [32mINFO [0m [2m[server][0m Client log batch received
+  (debug) [2m2026-01-31T22:44:07.442Z[0m [36mDEBUG[0m [2m[server][0m Client log batch details
+  (info) [2m2026-01-31T22:44:07.442Z[0m [32mINFO [0m [2m[server][0m Log batch write successful
+  (log) [AuthMiddleware] Request completed
+  (info) [2m2026-01-31T22:44:07.442Z[0m [32mINFO [0m [2m[server][0m Response 200[2m (0ms)[0m
+  (log) [ErrorHandler] Request completed successfully
+GET https://cloudpilot-api.blackbaysolutions.workers.dev/auth/get-session - Ok @ 2026-01-31, 5:44:07 p.m.
+  (log) [ErrorHandler] Processing request: GET /auth/get-session
+  (info) [2m2026-01-31T22:44:07.497Z[0m [32mINFO [0m [2m[server][0m GET /auth/get-session
+  (log) [AuthMiddleware] Processing request: GET /auth/get-session
+  (log) [AuthMiddleware] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [AuthMiddleware] Auth instance created successfully
+  (log) [AuthMiddleware] Fetching session...
+  (log) [AuthMiddleware] Session fetched: false
+  (log) [AuthMiddleware] No valid session found
+  (log) [AuthMiddleware] Proceeding to next middleware
+  (log) [Auth] Request received: GET /auth/get-session
+  (log) [Auth] First request - logging configuration
+  (info) [2m2026-01-31T22:44:07.497Z[0m [32mINFO [0m [2m[server][0m Better Auth configuration
+  (log) [Auth] Request details: {
+  requestId: 'xVkUbFNiEvbUuOvLNI6XN',
+  path: '/auth/get-session',
+  method: 'GET',
+  origin: 'https://cloudpilot-web.pages.dev',
+  referer: 'https://cloudpilot-web.pages.dev/'
+}
+  (debug) [2m2026-01-31T22:44:07.497Z[0m [36mDEBUG[0m [2m[server][0m Better Auth request
+  (log) [Auth] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [Auth] Auth instance created, calling handler...
+  (log) [Auth] Handler returned, status: 200
+  (log) [Auth] Response body length: 4
+  (log) [Auth] Response preview: null
+  (debug) [2m2026-01-31T22:44:07.497Z[0m [36mDEBUG[0m [2m[server][0m Better Auth response
+  (log) [Auth] Returning response
+  (log) [AuthMiddleware] Request completed
+  (info) [2m2026-01-31T22:44:07.497Z[0m [32mINFO [0m [2m[server][0m Response 200[2m (0ms)[0m
+  (log) [ErrorHandler] Request completed successfully
+OPTIONS https://cloudpilot-api.blackbaysolutions.workers.dev/auth/sign-in/social - Ok @ 2026-01-31, 5:44:08 p.m.
+  (log) [ErrorHandler] Processing request: OPTIONS /auth/sign-in/social
+  (log) [ErrorHandler] Request completed successfully
+POST https://cloudpilot-api.blackbaysolutions.workers.dev/logs/batch - Ok @ 2026-01-31, 5:44:09 p.m.
+  (log) [ErrorHandler] Processing request: POST /logs/batch
+  (info) [2m2026-01-31T22:44:09.498Z[0m [32mINFO [0m [2m[server][0m POST /logs/batch
+  (log) [AuthMiddleware] Processing request: POST /logs/batch
+  (log) [AuthMiddleware] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [AuthMiddleware] Auth instance created successfully
+  (log) [AuthMiddleware] Fetching session...
+  (log) [AuthMiddleware] Session fetched: false
+  (log) [AuthMiddleware] No valid session found
+  (log) [AuthMiddleware] Proceeding to next middleware
+  (info) [2m2026-01-31T22:44:09.498Z[0m [32mINFO [0m [2m[server][0m Log batch write request received
+  (info) [2m2026-01-31T22:44:09.498Z[0m [32mINFO [0m [2m[server][0m Client log batch received
+  (debug) [2m2026-01-31T22:44:09.498Z[0m [36mDEBUG[0m [2m[server][0m Client log batch details
+  (info) [2m2026-01-31T22:44:09.498Z[0m [32mINFO [0m [2m[server][0m Log batch write successful
+  (log) [AuthMiddleware] Request completed
+  (info) [2m2026-01-31T22:44:09.498Z[0m [32mINFO [0m [2m[server][0m Response 200[2m (0ms)[0m
+  (log) [ErrorHandler] Request completed successfully
+POST https://cloudpilot-api.blackbaysolutions.workers.dev/auth/sign-in/social - Ok @ 2026-01-31, 5:44:08 p.m.
+  (log) [ErrorHandler] Processing request: POST /auth/sign-in/social
+  (info) [2m2026-01-31T22:44:08.504Z[0m [32mINFO [0m [2m[server][0m POST /auth/sign-in/social
+  (log) [AuthMiddleware] Processing request: POST /auth/sign-in/social
+  (log) [AuthMiddleware] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [AuthMiddleware] Auth instance created successfully
+  (log) [AuthMiddleware] Fetching session...
+  (log) [AuthMiddleware] Session fetched: false
+  (log) [AuthMiddleware] No valid session found
+  (log) [AuthMiddleware] Proceeding to next middleware
+  (log) [Auth] Request received: POST /auth/sign-in/social
+  (log) [Auth] Request details: {
+  requestId: 'Ix0b1Ar__XhGrLvCJy6Wa',
+  path: '/auth/sign-in/social',
+  method: 'POST',
+  origin: 'https://cloudpilot-web.pages.dev',
+  referer: 'https://cloudpilot-web.pages.dev/'
+}
+  (debug) [2m2026-01-31T22:44:08.504Z[0m [36mDEBUG[0m [2m[server][0m Better Auth request
+  (log) [Auth] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [Auth] Auth instance created, calling handler...
+  (log) [Auth] Handler returned, status: 200
+  (log) [Auth] Response body length: 371
+  (log) [Auth] Response preview: {"url":"https://github.com/login/oauth/authorize?response_type=code&client_id=Ov23liI6G2NjMkY8SLYt&state=Kt7G-cFGciehKMMsjDJXIbhbcgr6xeXs&scope=read%3Auser+user%3Aemail&redirect_uri=https%3A%2F%2Fclou
+  (debug) [2m2026-01-31T22:44:11.300Z[0m [36mDEBUG[0m [2m[server][0m Better Auth response
+  (log) [Auth] Returning response
+  (log) [AuthMiddleware] Request completed
+  (info) [2m2026-01-31T22:44:11.300Z[0m [32mINFO [0m [2m[server][0m Response 200[2m (2796ms)[0m
+  (log) [ErrorHandler] Request completed successfully
+GET https://cloudpilot-api.blackbaysolutions.workers.dev/auth/callback/github?code=8fd556f2e7ef0925bd8f&state=REDACTED - Ok @ 2026-01-31, 5:44:11 p.m.
+  (log) [ErrorHandler] Processing request: GET /auth/callback/github
+  (info) [2m2026-01-31T22:44:11.756Z[0m [32mINFO [0m [2m[server][0m GET /auth/callback/github
+  (log) [AuthMiddleware] Processing request: GET /auth/callback/github
+  (log) [AuthMiddleware] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [AuthMiddleware] Auth instance created successfully
+  (log) [AuthMiddleware] Fetching session...
+  (log) [AuthMiddleware] Session fetched: false
+  (log) [AuthMiddleware] No valid session found
+  (log) [AuthMiddleware] Proceeding to next middleware
+  (log) [Auth] Request received: GET /auth/callback/github
+  (log) [Auth] First request - logging configuration
+  (info) [2m2026-01-31T22:44:11.756Z[0m [32mINFO [0m [2m[server][0m Better Auth configuration
+  (log) [Auth] Request details: {
+  requestId: 'OQoVDbw8UQUpf1VoYN9MD',
+  path: '/auth/callback/github',
+  method: 'GET',
+  referer: 'https://cloudpilot-web.pages.dev/'
+}
+  (debug) [2m2026-01-31T22:44:11.756Z[0m [36mDEBUG[0m [2m[server][0m Better Auth request
+  (log) [Auth] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [Auth] Auth instance created, calling handler...
+  (error) 2026-01-31T22:44:11.864Z ERROR [Better Auth]: Failed to parse state BetterAuthError: State mismatch: State not persisted correctly
+  (log) [Auth] Handler returned, status: 302
+  (log) [Auth] Response body length: 0
+  (log) [Auth] Response preview: 
+  (debug) [2m2026-01-31T22:44:11.864Z[0m [36mDEBUG[0m [2m[server][0m Better Auth response
+  (log) [Auth] Returning response
+  (log) [AuthMiddleware] Request completed
+  (info) [2m2026-01-31T22:44:11.864Z[0m [32mINFO [0m [2m[server][0m Response 302[2m (108ms)[0m
+  (log) [ErrorHandler] Request completed successfully
+GET https://cloudpilot-api.blackbaysolutions.workers.dev/auth/error?error=state_mismatch - Ok @ 2026-01-31, 5:44:11 p.m.
+  (log) [ErrorHandler] Processing request: GET /auth/error
+  (info) [2m2026-01-31T22:44:11.938Z[0m [32mINFO [0m [2m[server][0m GET /auth/error
+  (log) [AuthMiddleware] Processing request: GET /auth/error
+  (log) [AuthMiddleware] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [AuthMiddleware] Auth instance created successfully
+  (log) [AuthMiddleware] Fetching session...
+  (log) [AuthMiddleware] Session fetched: false
+  (log) [AuthMiddleware] No valid session found
+  (log) [AuthMiddleware] Proceeding to next middleware
+  (log) [Auth] Request received: GET /auth/error
+  (log) [Auth] Request details: {
+  requestId: 'y9Yoj12mfLv4cFMhlG_KI',
+  path: '/auth/error',
+  method: 'GET',
+  referer: 'https://cloudpilot-web.pages.dev/'
+}
+  (debug) [2m2026-01-31T22:44:11.938Z[0m [36mDEBUG[0m [2m[server][0m Better Auth request
+  (log) [Auth] Creating auth instance...
+  (log) [createAuth] Starting Better Auth creation...
+  (log) [createAuth] Validating environment variables...
+  (log) [createAuth] All required environment variables present
+  (log) [createAuth] Configuration: {
+  baseURL: 'https://cloudpilot-api.blackbaysolutions.workers.dev/auth',
+  hasSecret: true,
+  hasGitHubClientId: true,
+  hasGitHubClientSecret: true,
+  nodeEnv: 'production'
+}
+  (log) [createAuth] Creating Drizzle database instance...
+  (log) [createAuth] Drizzle instance created
+  (log) [createAuth] Getting trusted origins...
+  (log) [createAuth] Trusted origins: [ 'https://cloudpilot-web.pages.dev' ]
+  (log) [createAuth] Building Better Auth configuration...
+  (log) [createAuth] Configuration built
+  (log) [createAuth] Creating betterAuth instance (no wrapper)...
+  (log) [createAuth] Better Auth instance created successfully
+  (log) [Auth] Auth instance created, calling handler...
+  (log) [Auth] Handler returned, status: 200
+  (log) [Auth] Response body length: 9633
+  (log) [Auth] Response preview: <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error</title>
+    <style>
+      * {
+     
+  (debug) [2m2026-01-31T22:44:11.938Z[0m [36mDEBUG[0m [2m[server][0m Better Auth response
+  (log) [Auth] Returning response
+  (log) [AuthMiddleware] Request completed
+  (info) [2m2026-01-31T22:44:11.938Z[0m [32mINFO [0m [2m[server][0m Response 200[2m (0ms)[0m
+  (log) [ErrorHandler] Request completed successfully
