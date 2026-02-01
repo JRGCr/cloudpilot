@@ -3,6 +3,7 @@
  */
 
 import { betterAuth } from 'better-auth';
+import { withCloudflare } from 'better-auth-cloudflare';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { drizzle } from 'drizzle-orm/d1';
 import * as schema from '../db/schema.js';
@@ -101,8 +102,10 @@ export function createAuth(env: Env) {
     };
     console.log('[createAuth] Configuration built');
 
-    console.log('[createAuth] Creating betterAuth instance (no wrapper)...');
-    const authInstance = betterAuth(authConfig);
+    console.log('[createAuth] Creating betterAuth instance with Cloudflare wrapper...');
+    // Use withCloudflare wrapper for Workers-specific optimizations (cookie handling, etc.)
+    // Pass empty Cloudflare config - we handle database via drizzleAdapter
+    const authInstance = betterAuth(withCloudflare({}, authConfig));
     console.log('[createAuth] Better Auth instance created successfully');
 
     return authInstance;
