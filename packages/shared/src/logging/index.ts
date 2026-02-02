@@ -3,6 +3,7 @@
  */
 
 export type { LogEntry, LogLevel, LogSource, LogWriter, LoggerConfig } from './types.js';
+export type { CloudflareLogEntry, CloudflareLogger } from './cloudflare-logger.js';
 
 export {
   LOG_LEVELS,
@@ -17,3 +18,10 @@ export {
 export { ConsoleWriter, FileWriter, FetchWriter, MemoryWriter } from './writers.js';
 
 export { Logger, createLogger } from './logger.js';
+
+export { 
+  CloudflareLogger,
+  createPagesLogger, 
+  createWorkerLogger, 
+  createD1Logger 
+} from './cloudflare-logger.js';

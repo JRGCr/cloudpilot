@@ -3,11 +3,9 @@
  * Handles all /api/auth/* routes
  */
 
-import type { PagesFunction, D1Database } from '@cloudflare/workers-types';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { drizzle } from 'drizzle-orm/d1';
-import { createPagesLogger, createD1Logger } from '@cloudpilot/shared/logging/cloudflare-logger';
 
 // Import schema from API package
 // For now, inline the schema to avoid complex build setup
@@ -65,17 +63,7 @@ const schema = {
   verification,
 };
 
-interface Env {
-  DB: D1Database;
-  BETTER_AUTH_SECRET: string;
-  BETTER_AUTH_URL: string;
-  GITHUB_CLIENT_ID: string;
-  GITHUB_CLIENT_SECRET: string;
-  NODE_ENV?: string;
-  TRUSTED_ORIGINS?: string;
-}
-
-function getTrustedOrigins(env: Env): string[] {
+function getTrustedOrigins(env) {
   if (env.TRUSTED_ORIGINS) {
     return env.TRUSTED_ORIGINS.split(',')
       .map((origin) => origin.trim())
@@ -96,7 +84,7 @@ function getTrustedOrigins(env: Env): string[] {
   return defaults;
 }
 
-function createAuth(env: Env) {
+function createAuth(env) {
   console.log('[Pages Auth] Creating Better Auth instance...');
 
   // Validate required environment variables
@@ -176,49 +164,65 @@ function createAuth(env: Env) {
   }
 }
 
-export const onRequest: PagesFunction<Env> = async (context) => {
+export const onRequest = async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const pathname = url.pathname;
   const start = Date.now();
+  const correlationId = Math.random().toString(36).substring(2, 15);
 
-  // Create comprehensive logger for this Pages Function
-  const logger = createPagesLogger(env, request, 'auth-handler');
-  const d1Logger = createD1Logger('cloudpilot', logger.correlationId);
-
-  // Log incoming request with full context
-  logger.pagesRequest(request as any, {
-    auth: {
-      step: 'request_received',
-      pathname,
-      query: url.search,
-      hasAuthorizationHeader: !!request.headers.get('authorization'),
-      hasCookieHeader: !!request.headers.get('cookie'),
-      origin: request.headers.get('origin'),
-      referer: request.headers.get('referer'),
-    },
+  console.log('[Pages Auth] Request received:', request.method, pathname);
+  console.log('[Pages Auth] Request headers:', {
+    origin: request.headers.get('origin'),
+    referer: request.headers.get('referer'),
+    cookie: request.headers.get('cookie') ? 'present' : 'absent',
+    userAgent: request.headers.get('user-agent'),
   });
+
+  // Enhanced logging for observability system
+  console.log(`[CF-PAGES] ${JSON.stringify({
+    id: correlationId,
+    timestamp: new Date().toISOString(),
+    level: 'info',
+    source: 'pages',
+    message: `Pages Function: ${request.method} ${pathname}`,
+    correlationId,
+    cf: request.cf || {},
+    pages: {
+      environment: env.NODE_ENV === 'production' ? 'production' : 'preview',
+      functionName: 'auth-handler'
+    },
+    request: {
+      method: request.method,
+      url: request.url,
+      path: pathname,
+      userAgent: request.headers.get('user-agent'),
+      ip: request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for'),
+    },
+    metadata: {
+      auth: {
+        step: 'request_received',
+        pathname,
+        query: url.search,
+        hasAuthorizationHeader: !!request.headers.get('authorization'),
+        hasCookieHeader: !!request.headers.get('cookie'),
+        origin: request.headers.get('origin'),
+        referer: request.headers.get('referer'),
+      }
+    }
+  })}`);
 
   // Enhanced logging for error routes
   if (pathname.includes('/error')) {
+    console.error('[Pages Auth] ⚠️ ERROR ROUTE ACCESSED:', pathname);
+    console.error('[Pages Auth] Error route query params:', url.search);
+    console.error('[Pages Auth] Error route full URL:', url.toString());
+
+    // Parse query params to show error details
     const errorType = url.searchParams.get('error');
     const errorDescription = url.searchParams.get('error_description');
     const state = url.searchParams.get('state');
 
-    logger.error('Auth error route accessed', {
-      auth: {
-        step: 'error_route_accessed',
-        errorType,
-        errorDescription,
-        state: state ? `${state.substring(0, 20)}...` : 'none',
-        allParams: Object.fromEntries(url.searchParams.entries()),
-        fullUrl: url.toString(),
-      },
-    });
-
-    console.error('[Pages Auth] ⚠️ ERROR ROUTE ACCESSED:', pathname);
-    console.error('[Pages Auth] Error route query params:', url.search);
-    console.error('[Pages Auth] Error route full URL:', url.toString());
     console.error('[Pages Auth] Error details:', {
       errorType,
       errorDescription,
@@ -228,91 +232,59 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    // Track auth instance creation
-    const authInstance = await logger.trackPagesFunction('create-auth-instance', async () => {
-      logger.info('Creating Better Auth instance', {
-        auth: { step: 'auth_instance_creation_start' },
-      });
-      
-      console.log('[Pages Auth] Creating auth instance...');
-      const instance = createAuth(env);
+    console.log('[Pages Auth] Creating auth instance...');
+    let authInstance: ReturnType<typeof createAuth>;
+    try {
+      authInstance = createAuth(env);
       console.log('[Pages Auth] Auth instance created successfully');
-      
-      logger.info('Better Auth instance created successfully', {
-        auth: { step: 'auth_instance_creation_success' },
+    } catch (createError) {
+      console.error('[Pages Auth] Failed to create auth instance:', createError);
+      console.error('[Pages Auth] CreateAuth error details:', {
+        name: createError instanceof Error ? createError.name : 'unknown',
+        message: createError instanceof Error ? createError.message : String(createError),
+        stack: createError instanceof Error ? createError.stack : 'no stack',
       });
-      
-      return instance;
+      throw createError; // Re-throw to be caught by outer catch
+    }
+
+    console.log('[Pages Auth] Calling auth handler...');
+    console.log('[Pages Auth] Request details:', {
+      method: request.method,
+      url: pathname,
+      hasBody: request.method !== 'GET',
+      contentType: request.headers.get('content-type'),
     });
 
-    // Track auth handler execution
-    const response = await logger.trackPagesFunction('auth-handler-execution', async () => {
-      logger.info('Executing Better Auth handler', {
-        auth: {
-          step: 'handler_execution_start',
-          method: request.method,
-          hasBody: request.method !== 'GET',
-          contentType: request.headers.get('content-type'),
-        },
+    let response: Response;
+    try {
+      response = await authInstance.handler(request);
+      console.log('[Pages Auth] Handler returned successfully, status:', response.status);
+    } catch (handlerError) {
+      console.error('[Pages Auth] Handler execution failed:', handlerError);
+      console.error('[Pages Auth] Handler error details:', {
+        name: handlerError instanceof Error ? handlerError.name : 'unknown',
+        message: handlerError instanceof Error ? handlerError.message : String(handlerError),
+        stack: handlerError instanceof Error ? handlerError.stack?.substring(0, 1000) : 'no stack',
       });
+      throw handlerError; // Re-throw to be caught by outer catch
+    }
 
-      console.log('[Pages Auth] Calling auth handler...');
-      console.log('[Pages Auth] Request details:', {
-        method: request.method,
-        url: pathname,
-        hasBody: request.method !== 'GET',
-        contentType: request.headers.get('content-type'),
-      });
-
-      const handlerResponse = await authInstance.handler(request as any);
-      
-      console.log('[Pages Auth] Handler returned successfully, status:', handlerResponse.status);
-      
-      logger.info('Better Auth handler completed', {
-        auth: {
-          step: 'handler_execution_success',
-          responseStatus: handlerResponse.status,
-        },
-      });
-
-      return handlerResponse;
-    });
-
-    // Log response details
+    // Log response details for debugging
     const setCookie = response.headers.get('set-cookie');
     if (setCookie) {
       console.log('[Pages Auth] Setting cookie:', `${setCookie.substring(0, 100)}...`);
-      logger.debug('Auth cookie set', {
-        auth: {
-          step: 'cookie_set',
-          cookieLength: setCookie.length,
-          cookiePrefix: setCookie.substring(0, 50),
-        },
-      });
     }
 
-    // Enhanced error response logging
+    // Log errors
     if (response.status >= 400) {
       const cloned = response.clone();
       const text = await cloned.text();
-      
       console.error('[Pages Auth] Error response:', {
         status: response.status,
         statusText: response.statusText,
         body: text.substring(0, 500),
         contentType: response.headers.get('content-type'),
         contentLength: response.headers.get('content-length'),
-      });
-
-      logger.error('Auth handler error response', {
-        auth: {
-          step: 'error_response',
-          status: response.status,
-          statusText: response.statusText,
-          contentType: response.headers.get('content-type'),
-          contentLength: response.headers.get('content-length'),
-          bodyPreview: text.substring(0, 500),
-        },
       });
     }
 
@@ -321,38 +293,39 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const cloned = response.clone();
       const text = await cloned.text();
       console.error('[Pages Auth] Error route response body:', text.substring(0, 1000));
-      
-      logger.error('Error route response details', {
-        auth: {
-          step: 'error_route_response',
-          responseBody: text.substring(0, 1000),
-        },
-      });
     }
 
-    // Log successful completion with timing
+    // Log successful response
     const duration = Date.now() - start;
-    logger.pagesResponse(response, duration, {
-      auth: {
-        step: 'request_completed',
-        success: response.status < 400,
+    console.log(`[CF-PAGES] ${JSON.stringify({
+      id: correlationId,
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      source: 'pages',
+      message: `Pages Function Response: ${response.status}`,
+      correlationId,
+      pages: {
+        environment: env.NODE_ENV === 'production' ? 'production' : 'preview',
+        functionName: 'auth-handler'
       },
-    });
+      response: {
+        status: response.status,
+      },
+      timing: {
+        duration,
+        slow: duration > 1000,
+        verySlow: duration > 5000
+      },
+      metadata: {
+        auth: {
+          step: 'request_completed',
+          success: response.status < 400
+        }
+      }
+    })}`);
 
     return response;
   } catch (error) {
-    const duration = Date.now() - start;
-    
-    // Log the error with full context
-    logger.pagesError(error as Error, request as any, {
-      auth: {
-        step: 'fatal_error',
-        duration,
-        path: pathname,
-        critical: true,
-      },
-    });
-
     console.error('[Pages Auth] ❌ EXCEPTION CAUGHT:', error);
     console.error('[Pages Auth] Exception details:', {
       name: error instanceof Error ? error.name : 'unknown',
@@ -367,8 +340,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       message: error instanceof Error ? error.message : 'Unknown error',
       path: pathname,
       timestamp: new Date().toISOString(),
-      correlationId: logger.correlationId,
-      requestId: logger.requestId,
     };
 
     console.error('[Pages Auth] Returning error response:', errorResponse);
@@ -381,13 +352,36 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       },
     });
 
-    // Log the error response
-    logger.pagesResponse(response, duration, {
-      auth: {
-        step: 'error_response_sent',
-        errorType: error instanceof Error ? error.name : 'UnknownError',
+    // Log error response
+    const duration = Date.now() - start;
+    console.log(`[CF-PAGES] ${JSON.stringify({
+      id: correlationId,
+      timestamp: new Date().toISOString(),
+      level: 'error',
+      source: 'pages',
+      message: 'Pages Function Error Response: 500',
+      correlationId,
+      pages: {
+        environment: env.NODE_ENV === 'production' ? 'production' : 'preview',
+        functionName: 'auth-handler'
       },
-    });
+      response: {
+        status: 500,
+      },
+      timing: {
+        duration,
+      },
+      error: {
+        name: error instanceof Error ? error.name : 'UnknownError',
+        message: error instanceof Error ? error.message : String(error),
+      },
+      metadata: {
+        auth: {
+          step: 'error_response_sent',
+          errorType: error instanceof Error ? error.name : 'UnknownError',
+        }
+      }
+    })}`);
 
     return response;
   }

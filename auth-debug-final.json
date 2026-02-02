@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "timestamp": "2026-02-01T21:28:05.050Z",
+    "url": "https://cloudpilot-web.pages.dev",
+    "outputFile": "auth-debug-final.json"
+  },
+  "consoleLogs": [],
+  "networkRequests": [],
+  "errors": [
+    {
+      "type": "automation",
+      "message": "Failed to launch the browser process!\nrosetta error: failed to open elf at /lib64/ld-linux-x86-64.so.2\n \n\n\nTROUBLESHOOTING: https://pptr.dev/troubleshooting\n",
+      "stack": "Error: Failed to launch the browser process!\nrosetta error: failed to open elf at /lib64/ld-linux-x86-64.so.2\n \n\n\nTROUBLESHOOTING: https://pptr.dev/troubleshooting\n\n    at Interface.onClose (/tmp/tmp.oQKEtwzgtp/node_modules/@puppeteer/browsers/lib/cjs/launch.js:267:24)\n    at Interface.emit (node:events:536:35)\n    at Interface.close (node:internal/readline/interface:527:10)\n    at Socket.onend (node:internal/readline/interface:253:10)\n    at Socket.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)"
+    }
+  ],
+  "screenshots": []
+}

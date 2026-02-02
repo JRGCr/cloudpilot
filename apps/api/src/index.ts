@@ -3,6 +3,7 @@
  */
 
 import { Hono } from 'hono';
+import { createWorkerLogger } from '@cloudpilot/shared/logging/cloudflare-logger';
 import { authMiddleware } from './middleware/auth.middleware.js';
 import { corsMiddleware, errorHandler, loggingMiddleware } from './middleware/index.js';
 import { authProxy } from './routes/auth-proxy.routes.js';
@@ -18,6 +19,54 @@ console.log('[App] Initializing CloudPilot API...');
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 console.log('[App] Hono instance created');
+
+// Add worker invocation logging middleware
+app.use('*', async (c, next) => {
+  const start = Date.now();
+  const workerLogger = createWorkerLogger(c.env, c.req.raw);
+  
+  // Set worker logger in context for other middleware
+  c.set('workerLogger', workerLogger);
+  
+  workerLogger.workerInvocation('cloudpilot-api', `inv-${Date.now()}`, {
+    worker: {
+      step: 'invocation_start',
+      method: c.req.method,
+      path: c.req.path,
+      userAgent: c.req.header('user-agent'),
+      ip: c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for'),
+      hasAuthHeader: !!c.req.header('authorization'),
+    },
+  });
+  
+  try {
+    await next();
+    
+    const duration = Date.now() - start;
+    workerLogger.workerPerformance('request-handling', duration, undefined, {
+      worker: {
+        step: 'invocation_success',
+        responseStatus: c.res.status,
+      },
+    });
+  } catch (error) {
+    const duration = Date.now() - start;
+    workerLogger.error('Worker invocation error', {
+      worker: {
+        step: 'invocation_error',
+        duration,
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+        errorMessage: error instanceof Error ? error.message : String(error),
+      },
+      error: {
+        name: error instanceof Error ? error.name : 'UnknownError',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+    });
+    throw error;
+  }
+});
 
 // Global middleware (order matters)
 console.log('[App] Registering middleware...');

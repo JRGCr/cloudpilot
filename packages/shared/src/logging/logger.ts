@@ -77,6 +77,70 @@ export class Logger {
     this.debug(`State change: ${store}.${action}`, { store, action, prev, next });
   }
 
+  // Performance timing methods
+
+  performanceStart(operation: string, metadata?: Record<string, unknown>): void {
+    this.debug(`Performance tracking started: ${operation}`, {
+      performance: {
+        operation,
+        status: 'started',
+        startTime: Date.now(),
+      },
+      ...metadata,
+    });
+  }
+
+  performanceEnd(operation: string, startTime: number, metadata?: Record<string, unknown>): void {
+    const duration = Date.now() - startTime;
+    const level = duration > 1000 ? 'warn' : 'debug';
+    
+    this.log(level, `Performance tracking completed: ${operation}`, {
+      performance: {
+        operation,
+        status: 'completed',
+        duration,
+        slow: duration > 100,
+        verySlow: duration > 1000,
+      },
+      ...metadata,
+    });
+  }
+
+  performanceWarn(operation: string, duration: number, threshold: number, metadata?: Record<string, unknown>): void {
+    this.warn(`Slow performance detected: ${operation}`, {
+      performance: {
+        operation,
+        duration,
+        threshold,
+        slowPerformanceAlert: true,
+        severity: duration > threshold * 2 ? 'critical' : 'warning',
+      },
+      ...metadata,
+    });
+  }
+
+  memoryUsage(operation: string, beforeMemory?: NodeJS.MemoryUsage, metadata?: Record<string, unknown>): void {
+    const currentMemory = process.memoryUsage();
+    const memoryDelta = beforeMemory ? {
+      rss: currentMemory.rss - beforeMemory.rss,
+      heapUsed: currentMemory.heapUsed - beforeMemory.heapUsed,
+      heapTotal: currentMemory.heapTotal - beforeMemory.heapTotal,
+      external: currentMemory.external - beforeMemory.external,
+    } : undefined;
+
+    this.debug(`Memory usage: ${operation}`, {
+      performance: {
+        operation,
+        memory: {
+          current: currentMemory,
+          delta: memoryDelta,
+          baseline: beforeMemory,
+        },
+      },
+      ...metadata,
+    });
+  }
+
   dbQuery(query: string, paramCount: number, duration: number, rowsAffected: number): void {
     this.debug('Database query', { query, paramCount, duration, rowsAffected });
   }

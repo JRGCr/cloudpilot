@@ -1,9 +1,22 @@
 /**
- * Error handling middleware and error classes
+ * Enhanced error handling middleware with comprehensive logging
  */
 
+import { FileWriter, createLogger } from '@cloudpilot/shared';
 import type { Next } from 'hono';
+import path from 'node:path';
 import type { AppContext } from '../types/context.js';
+
+// Create dedicated error logger
+function createErrorLogger(correlationId?: string, requestId?: string) {
+  return createLogger({
+    source: 'server',
+    writers: [
+      new FileWriter({ filePath: path.join(process.cwd(), 'logs', 'errors-detailed.log') }),
+    ],
+    defaultMetadata: { correlationId, requestId },
+  });
+}
 
 export class AppError extends Error {
   constructor(
@@ -70,22 +83,63 @@ export class RateLimitError extends AppError {
 export function errorHandler() {
   console.log('[Middleware] Error handler initialized');
   return async (c: AppContext, next: Next) => {
-    console.log('[ErrorHandler] Processing request:', c.req.method, c.req.path);
+    const start = Date.now();
+    const correlationId = c.get('correlationId');
+    const requestId = c.get('requestId');
+    const logger = c.get('logger');
+    const user = c.get('user');
+    
     try {
       await next();
-      console.log('[ErrorHandler] Request completed successfully');
     } catch (error) {
-      console.error('[ErrorHandler] ERROR CAUGHT:', error);
-      const logger = c.get('logger');
-      const requestId = c.get('requestId');
+      const errorLogger = createErrorLogger(correlationId, requestId);
       const isProduction = c.env.NODE_ENV === 'production';
+      const duration = Date.now() - start;
+      
+      const userAgent = c.req.header('user-agent') || 'unknown';
+      const ipAddress = c.req.header('cf-connecting-ip') || 
+                       c.req.header('x-forwarded-for') || 
+                       c.req.header('x-real-ip') || 'unknown';
+
+      // Get request context for error logging
+      const requestContext = {
+        method: c.req.method,
+        path: c.req.path,
+        query: c.req.query(),
+        userAgent,
+        ipAddress,
+        userId: user?.id,
+        duration,
+        url: c.req.url,
+      };
 
       if (error instanceof AppError) {
-        console.log('[ErrorHandler] AppError detected:', error.code, error.statusCode);
+        // Log application error with full context
+        errorLogger.warn(`Application error: ${error.code}`, {
+          error: {
+            type: 'application',
+            name: error.name,
+            code: error.code,
+            message: error.message,
+            statusCode: error.statusCode,
+            details: error.details,
+            stack: isProduction ? undefined : error.stack,
+          },
+          request: requestContext,
+          context: {
+            isProduction,
+            timestamp: new Date().toISOString(),
+          },
+        });
+
+        // Log to request-scoped logger as well
         logger?.warn(`AppError: ${error.code}`, {
           statusCode: error.statusCode,
           details: error.details,
+          duration,
         });
+
+        console.log('[ErrorHandler] AppError detected:', error.code, error.statusCode);
 
         return c.json(
           {
@@ -100,17 +154,45 @@ export function errorHandler() {
         );
       }
 
-      // Unexpected error
+      // Unexpected/unhandled error
       const err = error as Error;
-      console.error('[ErrorHandler] Unexpected error:', {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
+      
+      // Log critical unexpected error with maximum detail
+      errorLogger.error('Unexpected system error', {
+        error: {
+          type: 'unexpected',
+          name: err.name,
+          message: err.message,
+          stack: err.stack,
+          critical: true,
+        },
+        request: requestContext,
+        context: {
+          isProduction,
+          timestamp: new Date().toISOString(),
+          nodeVersion: process.version,
+        },
+        system: {
+          memory: process.memoryUsage(),
+          uptime: process.uptime(),
+        },
       });
+
+      // Log to request-scoped logger
       logger?.error('Unexpected error', {
         name: err.name,
         message: err.message,
         stack: isProduction ? undefined : err.stack,
+        duration,
+        critical: true,
+      });
+
+      console.error('[ErrorHandler] Unexpected error:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+        requestId,
+        path: c.req.path,
       });
 
       return c.json(
