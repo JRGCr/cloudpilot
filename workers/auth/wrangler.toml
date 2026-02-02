@@ -1,0 +1,45 @@
+name = "cloudpilot-auth"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[dev]
+port = 8788
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "cloudpilot"
+database_id = "local"
+migrations_dir = "../../migrations"
+
+# Preview environment
+[env.preview]
+name = "cloudpilot-auth-preview"
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "cloudpilot"
+database_id = "local"
+migrations_dir = "../../migrations"
+
+# Production environment
+[env.production]
+name = "cloudpilot-auth"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "cloudpilot"
+database_id = "74e356ad-42c2-4806-b2b7-c7f4850261a2"
+migrations_dir = "../../migrations"
+
+# Environment variables (set via dashboard or wrangler secret)
+# BETTER_AUTH_SECRET
+# BETTER_AUTH_URL
+# GITHUB_CLIENT_ID
+# GITHUB_CLIENT_SECRET
+# NODE_ENV
+
+[env.production.vars]
+NODE_ENV = "production"
+BETTER_AUTH_URL = "https://cloudpilot-auth.blackbaysolutions.workers.dev"
